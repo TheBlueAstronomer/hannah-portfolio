@@ -1,11 +1,223 @@
-import React from 'react'
+import React, { useRef } from 'react';
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { ArrowRight, Linkedin, Twitter, Instagram, Mail } from 'lucide-react';
 
-import './Footer.scss'
+// Magnetic button — uses Framer Motion useMotionValue outside render cycle
+function MagneticButton({ children, href, outline, className, style }) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 150, damping: 15 });
+  const springY = useSpring(y, { stiffness: 150, damping: 15 });
 
-function Footer() {
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    x.set((e.clientX - centerX) * 0.28);
+    y.set((e.clientY - centerY) * 0.28);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
   return (
-    <div>Footer</div>
-  )
+    <motion.a
+      href={href}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ x: springX, y: springY, ...style }}
+      className={`group relative inline-flex items-center gap-2 font-jakarta text-sm font-semibold uppercase tracking-widest px-8 py-4 rounded-sm overflow-hidden transition-all duration-300 ${className}`}
+      whileTap={{ scale: 0.97 }}
+    >
+      {/* Sliding background fill */}
+      <span
+        className="absolute inset-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-spring-bounce"
+        style={{ backgroundColor: outline ? 'var(--color-violet)' : 'rgba(255,255,255,0.12)' }}
+        aria-hidden="true"
+      />
+      <span className="relative z-10 flex items-center gap-2">{children}</span>
+    </motion.a>
+  );
 }
 
-export default Footer
+const NAV_FOOTER = ['Work', 'About', 'Contact'];
+const SOCIAL_LINKS = [
+  { icon: Linkedin, href: 'https://www.linkedin.com/in/hannahrachelabraham/', label: 'LinkedIn' },
+  { icon: Twitter, href: 'https://twitter.com/HAN_NA_NA_NAH', label: 'Twitter' },
+  { icon: Instagram, href: 'https://www.instagram.com/han_na_na_nah/', label: 'Instagram' },
+  { icon: Mail, href: 'mailto:hannah@example.com', label: 'Email' },
+];
+
+export default function Footer() {
+  return (
+    <footer
+      id="contact"
+      className="relative"
+      style={{ backgroundColor: 'var(--color-charcoal)' }}
+      aria-label="Footer and Contact"
+    >
+      {/* Rounded top — editorial device */}
+      <div
+        className="absolute -top-px left-0 right-0 h-16 pointer-events-none"
+        style={{
+          backgroundColor: 'var(--color-charcoal)',
+          borderRadius: '4rem 4rem 0 0',
+        }}
+        aria-hidden="true"
+      />
+
+      {/* CTA Section */}
+      <div
+        className="relative pt-24 pb-16 px-6 md:px-10 max-w-[1400px] mx-auto"
+        style={{ borderBottom: '1px solid rgba(195,192,216,0.15)' }}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-end">
+          <div>
+            <span
+              className="font-jakarta text-xs uppercase tracking-[0.3em] font-semibold block mb-5"
+              style={{ color: 'rgba(195,192,216,0.6)' }}
+            >
+              — Open For Commissions
+            </span>
+            <h2
+              className="font-cormorant font-bold leading-tight"
+              style={{
+                fontSize: 'clamp(2.5rem, 6vw, 5rem)',
+                color: '#FFFFFF',
+              }}
+            >
+              Let&rsquo;s build the
+              <br />
+              <span
+                className="italic font-light"
+                style={{ color: 'var(--color-periwinkle)' }}
+              >
+                story together.
+              </span>
+            </h2>
+          </div>
+
+          <div className="flex flex-col gap-5 items-start lg:items-end">
+            <p
+              className="font-jakarta text-sm leading-relaxed max-w-[40ch] lg:text-right"
+              style={{ color: 'rgba(255,255,255,0.5)' }}
+            >
+              Available for features, interviews, film criticism, cultural commentary, and long-form investigative journalism.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              {/* Primary CTA — solid white */}
+              <MagneticButton
+                href="mailto:hannah@example.com"
+                style={{ backgroundColor: '#fff', color: 'var(--color-charcoal)' }}
+              >
+                Start a Project
+                <ArrowRight size={13} />
+              </MagneticButton>
+
+              {/* Secondary CTA — outline */}
+              <MagneticButton
+                href="#work"
+                outline
+                style={{
+                  border: '1px solid rgba(195,192,216,0.5)',
+                  color: 'var(--color-periwinkle)',
+                }}
+              >
+                View Portfolio
+              </MagneticButton>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer base */}
+      <div className="px-6 md:px-10 max-w-[1400px] mx-auto pt-10 pb-12">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+          {/* Logo */}
+          <div className="flex flex-col gap-1">
+            <span
+              className="font-cormorant font-bold italic text-2xl leading-none"
+              style={{ color: 'var(--color-periwinkle)' }}
+            >
+              Hannah Abraham
+            </span>
+            <span
+              className="font-jakarta text-[10px] uppercase tracking-[0.25em]"
+              style={{ color: 'rgba(255,255,255,0.3)' }}
+            >
+              Entertainment Journalist
+            </span>
+          </div>
+
+          {/* Nav links */}
+          <nav aria-label="Footer navigation">
+            <ul className="flex items-center gap-6" role="list">
+              {NAV_FOOTER.map((item) => (
+                <li key={item}>
+                  <a
+                    href={`#${item.toLowerCase()}`}
+                    className="font-jakarta text-xs uppercase tracking-widest font-medium transition-colors duration-200"
+                    style={{ color: 'rgba(255,255,255,0.45)' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-periwinkle)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
+                  >
+                    {item}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Social icons */}
+          <div className="flex items-center gap-3">
+            {SOCIAL_LINKS.map(({ icon: Icon, href, label }) => (
+              <a
+                key={label}
+                href={href}
+                target={href.startsWith('http') ? '_blank' : undefined}
+                rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                className="w-8 h-8 flex items-center justify-center rounded-sm border transition-all duration-200"
+                style={{
+                  borderColor: 'rgba(195,192,216,0.25)',
+                  color: 'rgba(255,255,255,0.5)',
+                }}
+                aria-label={label}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--color-periwinkle)';
+                  e.currentTarget.style.color = 'var(--color-periwinkle)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(195,192,216,0.25)';
+                  e.currentTarget.style.color = 'rgba(255,255,255,0.5)';
+                }}
+              >
+                <Icon size={13} />
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* Copyright */}
+        <div
+          className="mt-10 pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+          style={{ borderTop: '1px solid rgba(195,192,216,0.1)' }}
+        >
+          <p
+            className="font-jakarta text-[11px]"
+            style={{ color: 'rgba(255,255,255,0.25)' }}
+          >
+            &copy; {new Date().getFullYear()} Hannah Abraham. All rights reserved.
+          </p>
+          <p
+            className="font-jakarta text-[11px]"
+            style={{ color: 'rgba(255,255,255,0.18)' }}
+          >
+            Entertainment Journalist · Film · Culture · Criticism
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}

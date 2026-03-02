@@ -1,23 +1,25 @@
-import { useState } from 'react'
+import Hero from './container/Header/Header';
+import LatestWork from './container/Portfolio/Portfolio';
+import Philosophy from './container/About/About';
+import Reviews from './container/Testimonial/Testimonial';
+import Footer from './container/Footer/Footer';
+import Navbar from './components/Navbar/Navbar';
 
-import { About, Footer, Header, Testimonial, Portfolio} from './container'
-import { Navbar } from './components'
-
-import './App.scss'
+import './index.css';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <div className = "app">
+    <div className="app relative">
       <Navbar />
-      <Header />
-      <About />
-      <Portfolio />
-      <Testimonial />
+      <main>
+        <Hero />
+        <LatestWork />
+        <Philosophy />
+        <Reviews />
+      </main>
       <Footer />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
