@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.7"
 
 # ─── Hannah Portfolio — Production Docker Compose ─────────────────────────────
 # This compose file is intended to run strictly the Directus CMS and its DB
