@@ -11,7 +11,7 @@ WORKDIR /app
 
 # Copy package manifests first for better layer caching
 COPY package.json package-lock.json ./
-RUN npm ci --legacy-peer-deps
+RUN apk add --no-cache python3 make g++ && npm ci --legacy-peer-deps
 
 # Copy source and build
 COPY . .
@@ -30,7 +30,7 @@ WORKDIR /app
 
 # Only copy what's needed to run `vite preview`
 COPY --from=builder /app/package.json /app/package-lock.json ./
-RUN npm ci --omit=dev --legacy-peer-deps
+RUN apk add --no-cache python3 make g++ && npm ci --omit=dev --legacy-peer-deps
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/vite.config.js ./
