@@ -1,0 +1,39 @@
+version: "3.8"
+
+# ─── Hannah Portfolio — Production Docker Compose ─────────────────────────────
+# This compose file is intended to run strictly the Directus CMS and its DB
+# on a Compute Engine VM. The frontend is hosted serverlessly on Cloud Run.
+# ──────────────────────────────────────────────────────────────────────────────
+
+services:
+  directus:
+    image: directus/directus:11
+    container_name: hannah_directus_prod
+    restart: always
+    ports:
+      - "80:8055" # Bind to port 80 for production deployment directly, or use a reverse proxy
+    volumes:
+      - directus_db_prod:/directus/database
+      - directus_uploads_prod:/directus/uploads
+      - ./directus/extensions:/directus/extensions:ro
+    environment:
+      # Secrets should be injected via an environment variable file (.env) on the VM
+      SECRET: "${DIRECTUS_SECRET}"
+      ADMIN_EMAIL: "${ADMIN_EMAIL}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
+      
+      # SQLite Database
+      DB_CLIENT: "sqlite3"
+      DB_FILENAME: "/directus/database/data.db"
+      
+      # CORS
+      CORS_ENABLED: "true"
+      # IMPORTANT: In production, tighten this to your actual Cloud Run URL
+      CORS_ORIGIN: "https://your-cloud-run-url.a.run.app" 
+      CORS_METHODS: "GET,POST,PATCH,DELETE,OPTIONS"
+      
+      LOG_LEVEL: "info"
+
+volumes:
+  directus_db_prod:
+  directus_uploads_prod:

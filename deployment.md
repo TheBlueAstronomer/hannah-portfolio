@@ -41,31 +41,50 @@ The Continuous Integration / Continuous Deployment pipeline automates the delive
 
 ---
 
-### Strategy A: Deployment to Kubernetes (GKE)
+### Deployment to Google Cloud (Cloud Run + Compute Engine)
 
-When migrating from Docker Compose to GKE, consider the following architecture adjustments:
-- **Statelessness**: Since Kubernetes pods are ephemeral, you must replace the local Directus SQLite databse with a managed external database (e.g., Google Cloud SQL for PostgreSQL).
-- **Storage**: Use a cloud storage solution (e.g., Google Cloud Storage) for Directus uploads instead of a local volume.
+This project has been set up to deploy natively to Google Cloud using Cloud Build.
 
-**Pipeline Steps (GKE):**
-1. CI builds the `frontend` image and pushes it to Artifact Registry.
-2. CI authenticates with the GKE cluster (e.g., using `gcloud auth`).
-3. CI runs `kubectl set image deployment/frontend-deployment frontend=your-registry/frontend:commit-sha`.
-4. Kubernetes performs a rolling update, spawning new pods with the updated image and terminating old ones smoothly.
+**Architecture:**
+- **Frontend**: Google Cloud Run (Serverless)
+- **Directus CMS**: Google Compute Engine (VM)
+- **Registry**: Google Artifact Registry
+- **CI/CD**: Google Cloud Build
+
+**Prerequisites:**
+1. Authenticate with Google Cloud CLI: `gcloud auth login`
+2. Set your Google Cloud project: `gcloud config set project YOUR_PROJECT_ID`
+3. Enable necessary APIs:
+   ```bash
+   gcloud services enable cloudbuild.googleapis.com run.googleapis.com artifactregistry.googleapis.com compute.googleapis.com
+   ```
+
+**Setup Steps:**
+1. **Create Artifact Registry Repo:**
+   ```bash
+   gcloud artifacts repositories create portfolio --repository-format=docker --location=asia-south1
+   ```
+2. **Create Compute Engine instance** for Directus:
+   ```bash
+   gcloud compute instances create portfolio-vm \
+     --zone=asia-south1-a \
+     --machine-type=e2-medium \
+     --tags=http-server,https-server \
+     --image-family=debian-11 \
+     --image-project=debian-cloud
+   ```
+   *(Ensure you configure the VM to install Docker and copy `docker-compose.prod.yml`).*
+
+3. **Deploy via Cloud Build**:
+   The `cloudbuild.yaml` file is preconfigured to build, push, and deploy the application.
+   You can connect your GitHub repository directly to Cloud Build, which will automatically run `cloudbuild.yaml` on every push to `master`.
 
 ---
 
-### Strategy B: Deployment to Virtual Machines (VMs)
-
-If you are sticking to the Docker Compose setup on a standalone Linux VM:
-
-**Pipeline Steps (VM):**
-1. CI builds the `frontend` image and pushes it to Artifact Registry.
-2. CI securely connects to the VM via SSH.
-3. CI executes a docker login against the Artifactory Registry.
-4. CI runs `docker compose pull` on the remote machine to retrieve the newly built image.
-5. CI runs `docker compose up -d` to gracefully recreate any containers whose images were updated without downtime.
-
+## 4. Example Manual Cloud Build Trigger
+```bash
+gcloud builds submit --config cloudbuild.yaml .
+```
 ---
 
 ## 4. Example GitHub Actions Pipeline

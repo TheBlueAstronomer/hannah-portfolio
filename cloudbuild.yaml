@@ -1,0 +1,50 @@
+steps:
+  # 1. Build the Frontend Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:$COMMIT_SHA'
+      - '-t'
+      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:latest'
+      - '.'
+    id: 'build-frontend'
+
+  # 2. Push the Frontend Docker image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend'
+    id: 'push-frontend'
+
+  # 3. Deploy Frontend to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'hannah-portfolio-frontend'
+      - '--image'
+      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:$COMMIT_SHA'
+      - '--region'
+      - 'asia-south1'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '4173'
+    id: 'deploy-frontend'
+
+  # 4. Deploy Directus to Compute Engine (VM)
+  # This step uses a remote SSH command to pull the latest compose file or restart the service
+  # Ensure the Cloud Build service account has the necessary IAM permissions and SSH keys
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud compute ssh portfolio-vm --zone=asia-south1-a --command="cd /opt/hannah-portfolio && git pull && docker compose -f docker-compose.prod.yml up -d"
+    id: 'deploy-directus'
+
+images:
+  - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:$COMMIT_SHA'
+  - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:latest'

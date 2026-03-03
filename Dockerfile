@@ -38,4 +38,5 @@ COPY --from=builder /app/vite.config.js ./
 EXPOSE 4173
 
 # vite preview listens on 127.0.0.1 by default; pass --host to bind 0.0.0.0
-CMD ["npx", "vite", "preview", "--host", "0.0.0.0", "--port", "4173"]
+# Cloud Run injects the $PORT environment variable
+CMD sh -c "npx vite preview --host 0.0.0.0 --port ${PORT:-4173}"
