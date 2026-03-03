@@ -50,3 +50,6 @@ steps:
 images:
   - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:$COMMIT_SHA'
   - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
