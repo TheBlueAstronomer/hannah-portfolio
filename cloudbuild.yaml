@@ -3,6 +3,8 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
+      - '--build-arg'
+      - 'VITE_DIRECTUS_URL=http://34.100.194.88'
       - '-t'
       - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:$COMMIT_SHA'
       - '-t'
