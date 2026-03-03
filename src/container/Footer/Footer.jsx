@@ -1,6 +1,27 @@
-import React, { useRef } from 'react';
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import React from 'react';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { ArrowRight, Linkedin, Twitter, Instagram, Mail } from 'lucide-react';
+import { useSiteSettings } from '../../hooks/useDirectus';
+
+// ─── Fallback content ──────────────────────────────────────────────────────────
+
+const FALLBACK = {
+  email: 'mailto:hannah@example.com',
+  contactDescription:
+    'Available for features, interviews, film criticism, cultural commentary, and long-form investigative journalism.',
+  linkedin: 'https://www.linkedin.com/in/hannahrachelabraham/',
+  twitter: 'https://twitter.com/HAN_NA_NA_NAH',
+  instagram: 'https://www.instagram.com/han_na_na_nah/',
+  isAvailable: true,
+};
+
+// ─── Icon map — Lucide component per CMS social key ───────────────────────────
+
+const SOCIAL_ICON_MAP = {
+  linkedin: Linkedin,
+  twitter: Twitter,
+  instagram: Instagram,
+};
 
 // Magnetic button — uses Framer Motion useMotionValue outside render cycle
 function MagneticButton({ children, href, outline, className, style }) {
@@ -43,14 +64,44 @@ function MagneticButton({ children, href, outline, className, style }) {
 }
 
 const NAV_FOOTER = ['Work', 'About', 'Contact'];
-const SOCIAL_LINKS = [
-  { icon: Linkedin, href: 'https://www.linkedin.com/in/hannahrachelabraham/', label: 'LinkedIn' },
-  { icon: Twitter, href: 'https://twitter.com/HAN_NA_NA_NAH', label: 'Twitter' },
-  { icon: Instagram, href: 'https://www.instagram.com/han_na_na_nah/', label: 'Instagram' },
-  { icon: Mail, href: 'mailto:hannah@example.com', label: 'Email' },
-];
 
 export default function Footer() {
+  const { settings } = useSiteSettings();
+
+  // Resolve values — CMS first, fallback second
+  const email = settings?.contact_email ? `mailto:${settings.contact_email}` : FALLBACK.email;
+  const contactDesc = settings?.contact_description || FALLBACK.contactDescription;
+  const isAvailable = settings?.hero_availability ?? FALLBACK.isAvailable;
+  const availabilityText = isAvailable ? 'Open For Commissions' : 'Currently Unavailable';
+
+  // Build dynamic social link list from CMS fields
+  const socialLinks = [
+    {
+      key: 'linkedin',
+      label: 'LinkedIn',
+      href: settings?.social_linkedin || FALLBACK.linkedin,
+      icon: Linkedin,
+    },
+    {
+      key: 'twitter',
+      label: 'Twitter / X',
+      href: settings?.social_twitter || FALLBACK.twitter,
+      icon: Twitter,
+    },
+    {
+      key: 'instagram',
+      label: 'Instagram',
+      href: settings?.social_instagram || FALLBACK.instagram,
+      icon: Instagram,
+    },
+    {
+      key: 'mail',
+      label: 'Email',
+      href: email,
+      icon: Mail,
+    },
+  ];
+
   return (
     <footer
       id="contact"
@@ -75,11 +126,12 @@ export default function Footer() {
       >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-end">
           <div>
+            {/* Availability label — CMS-driven */}
             <span
               className="font-jakarta text-xs uppercase tracking-[0.3em] font-semibold block mb-5"
               style={{ color: 'rgba(195,192,216,0.6)' }}
             >
-              — Open For Commissions
+              — {availabilityText}
             </span>
             <h2
               className="font-cormorant font-bold leading-tight"
@@ -100,16 +152,17 @@ export default function Footer() {
           </div>
 
           <div className="flex flex-col gap-5 items-start lg:items-end">
+            {/* Contact description — from CMS */}
             <p
               className="font-jakarta text-sm leading-relaxed max-w-[40ch] lg:text-right"
               style={{ color: 'rgba(255,255,255,0.5)' }}
             >
-              Available for features, interviews, film criticism, cultural commentary, and long-form investigative journalism.
+              {contactDesc}
             </p>
             <div className="flex flex-wrap gap-4">
-              {/* Primary CTA — solid white */}
+              {/* Primary CTA — solid white, email from CMS */}
               <MagneticButton
-                href="mailto:hannah@example.com"
+                href={email}
                 style={{ backgroundColor: '#fff', color: 'var(--color-charcoal)' }}
               >
                 Start a Project
@@ -170,11 +223,11 @@ export default function Footer() {
             </ul>
           </nav>
 
-          {/* Social icons */}
+          {/* Social icons — from CMS */}
           <div className="flex items-center gap-3">
-            {SOCIAL_LINKS.map(({ icon: Icon, href, label }) => (
+            {socialLinks.map(({ key, icon: Icon, href, label }) => (
               <a
-                key={label}
+                key={key}
                 href={href}
                 target={href.startsWith('http') ? '_blank' : undefined}
                 rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}

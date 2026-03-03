@@ -1,52 +1,89 @@
 # Hannah Portfolio
 
-This project is a personal portfolio and blog application built with **React** and **Vite**, featuring a modern and dynamic user interface. The content is managed dynamically using **Sanity CMS**, ensuring a seamless authoring experience for portfolio items, articles, and testimonials.
+Personal portfolio and blog built with **React + Vite**, content managed with a **self-hosted [Directus](https://directus.io) CMS** running in Docker.
 
-## Features
-- **Frontend**: React, Vite, Framer Motion, and GSAP for fast, highly animated, and interactive user experiences.
-- **Backend/CMS**: Sanity Studio to manage structured content like Skills, Portfolio Projects, Testimonials, and Articles.
-- **Styling**: SCSS and Tailwind CSS.
+## Tech Stack
 
-## Getting Started
+- **Frontend**: React 19, Vite, Framer Motion, GSAP, Tailwind CSS, SCSS
+- **CMS**: Directus (self-hosted) — open-source, runs in Docker next to the frontend
+- **Database**: SQLite (inside the Directus container)
 
-To get started with the development environment, you will need to run both the React frontend and the Sanity backend.
+---
 
-### 1. Frontend (React + Vite)
-Open a terminal in the root directory and install dependencies:
+## Local Development
+
+### 1. Start Directus CMS
+
+```bash
+# First time only — copy and fill in secrets
+cp .env.directus.example .env.directus
+
+docker compose up directus
+```
+
+Open **http://localhost:8055** and log in with the credentials from `.env.directus`.
+
+**First-time collection setup:**
+1. Go to **Settings → Data Model → Create Collection** named `articles`.
+2. Add the fields listed in `directus/seed/seed_articles.mjs` (or import the schema snapshot once you export one).
+3. Go to **Settings → Roles & Permissions → Public → articles → Enable Read**.
+
+**Seed placeholder data** (requires a Directus API token):
+```bash
+DIRECTUS_URL=http://localhost:8055 \
+DIRECTUS_TOKEN=<your-token> \
+node directus/seed/seed_articles.mjs
+```
+
+### 2. Start the Frontend
+
+Create a `.env` file at the project root (already done):
+```
+VITE_DIRECTUS_URL=http://localhost:8055
+```
+
 ```bash
 npm install
-```
-
-Start the development server:
-```bash
 npm run dev
 ```
-The frontend should now be running (usually at `http://localhost:5173`).
 
-### 2. Backend (Sanity CMS)
-Open a new terminal window and navigate to the `backend_sanity` directory:
+Frontend runs at **http://localhost:5173**.
+
+---
+
+## Production (Docker)
+
+Both services run in Docker:
+
 ```bash
-cd backend_sanity
+docker compose up --build
 ```
 
-Install the backend dependencies:
+| Service    | URL                          |
+|------------|------------------------------|
+| Frontend   | http://localhost:4173        |
+| Directus   | http://localhost:8055        |
+
+The frontend `VITE_DIRECTUS_URL` is baked-in at build time. To point at a remote Directus instance:
+
 ```bash
-npm install
+docker compose build --build-arg VITE_DIRECTUS_URL=https://cms.yourdomain.com frontend
 ```
 
-Start the Sanity Studio:
-```bash
-npm run dev
+---
+
+## Project Structure
+
 ```
-Sanity Studio will be available locally (usually at `http://localhost:3333`), where you can edit the portfolio content and schemas.
-
-## Build and Deployment
-
-To build the project for production, run:
-```bash
-# In the root directory (for frontend)
-npm run build
-
-# In the backend_sanity directory (for sanity)
-npm run build
+hannah-portfolio/
+├── src/                    # React + Vite frontend
+│   ├── directus.js         # Directus SDK client
+│   └── container/
+│       └── Portfolio/      # Article fetching (was Sanity, now Directus)
+├── directus/
+│   └── seed/
+│       └── seed_articles.mjs   # Seed script for articles collection
+├── docker-compose.yml      # Directus + frontend services
+├── Dockerfile              # Multi-stage frontend build
+└── .env.directus.example   # Directus secrets template
 ```

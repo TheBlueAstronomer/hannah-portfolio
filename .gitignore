@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Directus secrets
+.env.directus
+
+# Directus local data volumes
+directus/database/
+directus/uploads/

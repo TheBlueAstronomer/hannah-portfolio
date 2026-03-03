@@ -1,0 +1,9 @@
+{
+    "name": "hannah-directus-cms",
+    "version": "1.0.0",
+    "description": "Self-hosted Directus CMS for Hannah Portfolio",
+    "private": true,
+    "dependencies": {
+        "directus": "^11.15.4"
+    }
+}

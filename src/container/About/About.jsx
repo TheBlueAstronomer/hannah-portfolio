@@ -1,13 +1,16 @@
 import React, { useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useSiteSettings } from '../../hooks/useDirectus';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const MANIFESTO_LINES = [
-  { text: 'Standard journalism reports what happened.', variant: 'muted' },
-  { text: 'I uncover why it matters.', variant: 'bold' },
-];
+// ─── Fallback content (used when Directus is offline) ─────────────────────────
+
+const FALLBACK_LINE1 = 'Standard journalism reports what happened.';
+const FALLBACK_LINE2 = 'I uncover why it matters.';
+const FALLBACK_BIO =
+  'After seven years covering entertainment, film festivals, and cultural shifts — I have sharpened one belief: audiences deserve more than summaries. They deserve context, nuance, and the story beneath the story.';
 
 export default function Philosophy() {
   const sectionRef = useRef(null);
@@ -15,6 +18,12 @@ export default function Philosophy() {
   const line2Ref = useRef(null);
   const dividerRef = useRef(null);
   const metaRef = useRef(null);
+
+  const { settings } = useSiteSettings();
+
+  const line1 = settings?.about_line1 || FALLBACK_LINE1;
+  const line2 = settings?.about_line2 || FALLBACK_LINE2;
+  const bio = settings?.about_bio || FALLBACK_BIO;
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -134,7 +143,7 @@ export default function Philosophy() {
         }}
       />
 
-      {/* Hex pattern overlay — same global tech but in dark contrast */}
+      {/* Hex pattern overlay */}
       <div
         className="absolute inset-0 pointer-events-none"
         aria-hidden="true"
@@ -163,7 +172,7 @@ export default function Philosophy() {
 
         {/* Typography Contrast */}
         <div className="flex flex-col gap-8 md:gap-12 max-w-[900px]">
-          {/* Line 1 — muted, crossed-out feel */}
+          {/* Line 1 — muted, crossed-out feel — from Directus */}
           <div ref={line1Ref} className="overflow-hidden" style={{ perspective: '600px' }}>
             <p
               className="font-jakarta font-light leading-tight"
@@ -175,7 +184,7 @@ export default function Philosophy() {
                 textDecorationThickness: '1px',
               }}
             >
-              {splitWords(MANIFESTO_LINES[0].text)}
+              {splitWords(line1)}
             </p>
           </div>
 
@@ -187,7 +196,7 @@ export default function Philosophy() {
             aria-hidden="true"
           />
 
-          {/* Line 2 — bold, Cormorant, glowing periwinkle */}
+          {/* Line 2 — bold, Cormorant, glowing periwinkle — from Directus */}
           <div ref={line2Ref}>
             <p
               className="font-cormorant font-bold italic leading-tight"
@@ -197,19 +206,18 @@ export default function Philosophy() {
                 textShadow: '0 0 60px rgba(195,192,216,0.25)',
               }}
             >
-              {MANIFESTO_LINES[1].text}
+              {line2}
             </p>
           </div>
         </div>
 
-        {/* Attribution / Meta */}
+        {/* Attribution / Meta — from Directus */}
         <div ref={metaRef} className="mt-20 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <p
             className="font-jakarta text-sm leading-relaxed max-w-[52ch]"
             style={{ color: 'rgba(255,255,255,0.5)' }}
           >
-            After seven years covering entertainment, film festivals, and cultural shifts — I have sharpened
-            one belief: audiences deserve more than summaries. They deserve context, nuance, and the story beneath the story.
+            {bio}
           </p>
           <div className="flex flex-col gap-1 text-right">
             <span

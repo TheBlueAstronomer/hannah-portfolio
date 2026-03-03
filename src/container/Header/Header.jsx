@@ -2,12 +2,33 @@ import React, { useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { ArrowDownRight, Pen } from 'lucide-react';
 import profileImg from '../../assets/headshots/by8a4305.png';
+import { useSiteSettings } from '../../hooks/useDirectus';
+
+// ─── Fallback content (used when Directus is offline) ─────────────────────────
+
+const FALLBACK = {
+  descriptor: "Freelance writer and film critic with a history of working in the publishing industry. I don't just report what happened — I uncover why it matters.",
+  stats: [
+    { value: '7+', label: 'Years Writing' },
+    { value: '200+', label: 'Articles Published' },
+    { value: '14', label: 'Publications' },
+  ],
+};
 
 export default function Hero() {
   const sectionRef = useRef(null);
   const portraitRef = useRef(null);
   const textRefs = useRef([]);
   textRefs.current = [];
+
+  const { settings } = useSiteSettings();
+
+  const descriptor = settings?.hero_descriptor || FALLBACK.descriptor;
+  const stats = [
+    { value: settings?.hero_stat_years || FALLBACK.stats[0].value, label: 'Years Writing' },
+    { value: settings?.hero_stat_articles || FALLBACK.stats[1].value, label: 'Articles Published' },
+    { value: settings?.hero_stat_publications || FALLBACK.stats[2].value, label: 'Publications' },
+  ];
 
   const addToTextRefs = (el) => {
     if (el && !textRefs.current.includes(el)) {
@@ -94,12 +115,6 @@ export default function Hero() {
         ref={portraitRef}
         className="absolute bottom-0 select-none pointer-events-none"
         style={{
-          /*
-           * left:32% places the image so:
-           *   - her left arm/elbow (~15% into the image) lands at ~35% from viewport left  
-           *   - the white column ends at 52% → arm is clearly in white space
-           *   - right side of image bleeds off-screen, clipped by section overflow-hidden
-           */
           left: '45%',
           zIndex: 5,
           willChange: 'transform',
@@ -111,7 +126,6 @@ export default function Hero() {
           alt="Hannah Abraham — Entertainment Journalist"
           className="w-auto block"
           style={{
-            /* 98dvh — maxes out the height so head clears the label */
             height: '96dvh',
             maxWidth: 'none',
             objectFit: 'contain',
@@ -159,23 +173,18 @@ export default function Hero() {
             </span>
           </div>
 
-          {/* Descriptor */}
+          {/* Descriptor — from Directus */}
           <p
             ref={addToTextRefs}
             className="font-jakarta text-base md:text-lg leading-relaxed max-w-[44ch]"
             style={{ color: 'var(--color-gray-mid)' }}
           >
-            Freelance writer and film critic with a history of working in the publishing industry.
-            I don&apos;t just report what happened — I uncover why it matters.
+            {descriptor}
           </p>
 
-          {/* Stats row */}
+          {/* Stats row — from Directus */}
           <div ref={addToTextRefs} className="flex items-center gap-8 mt-2">
-            {[
-              { value: '7+', label: 'Years Writing' },
-              { value: '200+', label: 'Articles Published' },
-              { value: '14', label: 'Publications' },
-            ].map(({ value, label }) => (
+            {stats.map(({ value, label }) => (
               <div key={label} className="flex flex-col gap-0.5">
                 <span
                   className="font-cormorant font-bold text-3xl leading-none"

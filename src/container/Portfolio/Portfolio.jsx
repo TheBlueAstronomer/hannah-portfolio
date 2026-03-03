@@ -1,26 +1,36 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { gsap } from 'gsap';
 import { ExternalLink, ArrowRight } from 'lucide-react';
-import { client } from '../../client';
+import { readItems } from '@directus/sdk';
+import { directus, DIRECTUS_URL } from '../../directus';
 
-// ─── GROQ QUERIES ────────────────────────────────────────────────────────────
+// ─── DIRECTUS QUERIES ────────────────────────────────────────────────────────
 
-const FEATURED_QUERY = `*[_type == "article" && isFeatured == true] | order(order asc) {
-  _id,
-  title,
-  publication,
-  category,
-  date,
-  url,
-  cardColor,
-  accentColor,
-}`;
+const FEATURED_QUERY = {
+  filter: { is_featured: { _eq: true } },
+  sort: ['sort'],
+  fields: ['id', 'title', 'publication', 'category', 'date', 'url', 'card_color', 'accent_color', 'image'],
+};
 
-const HEADLINES_QUERY = `*[_type == "article" && isHeadline == true] | order(order asc) {
-  _id,
-  title,
-  url,
-}`;
+const HEADLINES_QUERY = {
+  filter: { is_headline: { _eq: true } },
+  sort: ['sort'],
+  fields: ['id', 'title', 'url'],
+};
+
+// Map Directus snake_case fields → component camelCase props
+function mapFeatured(item) {
+  return {
+    ...item,
+    cardColor: item.card_color,
+    accentColor: item.accent_color,
+    image: item.image,
+  };
+}
+
+function mapHeadline(item) {
+  return { id: item.id, title: item.title, url: item.url };
+}
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
@@ -241,7 +251,7 @@ function ArticleShuffler({ articles }) {
               {/* Right image strip */}
               <div className="w-[110px] flex-shrink-0 overflow-hidden">
                 <img
-                  src={card.img || `https://picsum.photos/seed/${card._id || card.id}/400/520`}
+                  src={card.image ? `${DIRECTUS_URL}/assets/${card.image}` : card.img || `https://picsum.photos/seed/${card._id || card.id}/400/520`}
                   alt=""
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   draggable="false"
@@ -554,7 +564,7 @@ export default function LatestWork() {
   const headingRef = useRef(null);
   const cardsRef = useRef([]);
 
-  // ── Sanity data state ──────────────────────────────────────────────────────
+  // ── Directus data state ────────────────────────────────────────────────────
   const [featuredArticles, setFeaturedArticles] = useState([]);
   const [headlineArticles, setHeadlineArticles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -564,15 +574,15 @@ export default function LatestWork() {
     async function fetchArticles() {
       try {
         const [featured, headlines] = await Promise.all([
-          client.fetch(FEATURED_QUERY),
-          client.fetch(HEADLINES_QUERY),
+          directus.request(readItems('articles', FEATURED_QUERY)),
+          directus.request(readItems('articles', HEADLINES_QUERY)),
         ]);
         if (!cancelled) {
-          setFeaturedArticles(featured || []);
-          setHeadlineArticles(headlines || []);
+          setFeaturedArticles((featured || []).map(mapFeatured));
+          setHeadlineArticles((headlines || []).map(mapHeadline));
         }
       } catch (err) {
-        console.error('[Portfolio] Sanity fetch failed, using placeholders:', err);
+        console.error('[Portfolio] Directus fetch failed, using placeholders:', err);
         // Fallback: components will use their own placeholder data
       } finally {
         if (!cancelled) setLoading(false);

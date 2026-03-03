@@ -1,0 +1,75 @@
+version: "3.8"
+
+# ─── Hannah Portfolio — Docker Compose ────────────────────────────────────────
+#
+#  Services:
+#   directus  — self-hosted CMS,  http://localhost:8055
+#   frontend  — portfolio Vite app, http://localhost:4173  (production preview)
+#
+#  First-time setup:
+#   1. Copy .env.directus.example → .env.directus and fill in the secrets.
+#   2. docker compose up directus
+#   3. Open http://localhost:8055 and log in with ADMIN_EMAIL / ADMIN_PASSWORD.
+#   4. Go to Settings → Data Model → create the "articles" collection
+#      (or use: docker compose run --rm directus node /directus/seed/seed_articles.mjs)
+#   5. Set the "articles" collection to public read:
+#      Settings → Roles & Permissions → Public → articles → Read ✓
+#   6. docker compose up frontend
+# ──────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Directus CMS ─────────────────────────────────────────────────────────────
+  directus:
+    image: directus/directus:11
+    container_name: hannah_directus
+    restart: unless-stopped
+    ports:
+      - "8055:8055"
+    volumes:
+      - directus_db:/directus/database       # SQLite database persistence
+      - directus_uploads:/directus/uploads   # uploaded files / images
+      - ./directus/seed:/directus/seed:ro    # seed scripts (read-only)
+      - ./directus/extensions:/directus/extensions:ro  # custom extensions placeholder
+    environment:
+      # ── Core ──────────────────────────────────────────────────────────────
+      SECRET: "${DIRECTUS_SECRET:-change-me-to-a-random-string-in-production}"
+
+      # ── Database (SQLite — swap for Postgres if you need it later) ────────
+      DB_CLIENT: "sqlite3"
+      DB_FILENAME: "/directus/database/data.db"
+
+      # ── First-time admin account ──────────────────────────────────────────
+      ADMIN_EMAIL: "${DIRECTUS_ADMIN_EMAIL:-admin@example.com}"
+      ADMIN_PASSWORD: "${DIRECTUS_ADMIN_PASSWORD:-changeme123}"
+
+      # ── CORS — allow the Vite dev server and production frontend ──────────
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "true"          # reflects request origin; tighten in prod
+      CORS_METHODS: "GET,POST,PATCH,DELETE"
+
+      # ── Cache (optional but handy for a portfolio read-mostly workload) ───
+      CACHE_ENABLED: "false"
+
+      # ── Logging ───────────────────────────────────────────────────────────
+      LOG_LEVEL: "info"
+
+  # ── Frontend (production preview) ────────────────────────────────────────────
+  # Builds the Vite app and serves it with `vite preview` on port 4173.
+  # For local dev, just run `npm run dev` on your host instead.
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hannah_frontend
+    restart: unless-stopped
+    ports:
+      - "4173:4173"
+    environment:
+      VITE_DIRECTUS_URL: "http://directus:8055"   # internal Docker network URL
+    depends_on:
+      - directus
+
+volumes:
+  directus_db:
+  directus_uploads:
