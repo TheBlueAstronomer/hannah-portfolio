@@ -28,15 +28,14 @@ FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-# Only copy what's needed to run `vite preview`
-COPY --from=builder /app/package.json /app/package-lock.json ./
-RUN apk add --no-cache python3 make g++ && npm ci --omit=dev --legacy-peer-deps
-
+# Only copy what's needed to serve the static files
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/vite.config.js ./
+
+# Install a lightweight static server globally
+RUN npm install -g serve
 
 EXPOSE 4173
 
-# vite preview listens on 127.0.0.1 by default; pass --host to bind 0.0.0.0
-# Cloud Run injects the $PORT environment variable
-CMD sh -c "npx vite preview --host 0.0.0.0 --port ${PORT:-4173}"
+# Serve the application from the /dist folder
+# Cloud Run injects the $PORT environment variable, defaulting to 4173
+CMD sh -c "serve -s dist -l ${PORT:-4173}"
