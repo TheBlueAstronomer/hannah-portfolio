@@ -11,7 +11,7 @@ services:
     container_name: hannah_directus_prod
     restart: always
     ports:
-      - "80:8055" # Bind to port 80 for production deployment directly, or use a reverse proxy
+      - "8055:8055" # Exposing on native Directus port instead of 80 to make room for Frontend
     volumes:
       - directus_db_prod:/directus/database
       - directus_uploads_prod:/directus/uploads
@@ -21,18 +21,27 @@ services:
       SECRET: "${DIRECTUS_SECRET}"
       ADMIN_EMAIL: "${ADMIN_EMAIL}"
       ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
-      
+
       # SQLite Database
       DB_CLIENT: "sqlite3"
       DB_FILENAME: "/directus/database/data.db"
-      
+
       # CORS
       CORS_ENABLED: "true"
-      # IMPORTANT: In production, tighten this to your actual Cloud Run URL
-      CORS_ORIGIN: "https://your-cloud-run-url.a.run.app" 
+      # IMPORTANT: In production, tighten this to your actual Frontend URL
+      CORS_ORIGIN: "http://34.100.194.88,http://localhost:5173,http://localhost:4173"
       CORS_METHODS: "GET,POST,PATCH,DELETE,OPTIONS"
-      
+
       LOG_LEVEL: "info"
+
+  frontend:
+    image: asia-south1-docker.pkg.dev/gen-lang-client-0321775722/portfolio/frontend:latest
+    container_name: hannah_frontend_prod
+    restart: always
+    ports:
+      - "80:4173" # Expose Vite deployment on http port 80
+    environment:
+      - PORT=4173
 
 volumes:
   directus_db_prod:
