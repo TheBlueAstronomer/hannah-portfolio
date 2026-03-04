@@ -30,7 +30,7 @@ steps:
     args:
       - '-c'
       - |
-        gcloud compute ssh portfolio-vm --zone=asia-south1-a --quiet --command="cd /opt/hannah-portfolio && git pull && gcloud auth configure-docker asia-south1-docker.pkg.dev --quiet && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d"
+        gcloud compute ssh portfolio-vm --zone=asia-south1-a --quiet --command="cd /opt/hannah-portfolio && git config --global --add safe.directory /opt/hannah-portfolio && git pull && gcloud auth configure-docker asia-south1-docker.pkg.dev --quiet && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d"
     id: 'deploy-vm'
 
 images:
