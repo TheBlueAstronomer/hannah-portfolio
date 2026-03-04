@@ -23,14 +23,17 @@ steps:
 
 
   # 3. Deploy App to Compute Engine (VM)
-  # This step uses a remote SSH command to pull the latest compose file and images
   # Ensure the Cloud Build service account has the necessary IAM permissions and SSH keys
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        gcloud compute ssh portfolio-vm --zone=asia-south1-a --quiet --command="sudo bash -c 'cd /opt/hannah-portfolio && git config --global --add safe.directory /opt/hannah-portfolio && cp .env .env.bak 2>/dev/null || true && git reset --hard && git pull && mv .env.bak .env 2>/dev/null || true && gcloud auth configure-docker asia-south1-docker.pkg.dev --quiet && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d'"
+        # Securely copy the Compose file to the VM
+        gcloud compute scp docker-compose.prod.yml portfolio-vm:/opt/hannah-portfolio/ --zone=asia-south1-a --quiet
+        
+        # SSH in to pull the new images and restart the containers
+        gcloud compute ssh portfolio-vm --zone=asia-south1-a --quiet --command="sudo bash -c 'cd /opt/hannah-portfolio && gcloud auth configure-docker asia-south1-docker.pkg.dev --quiet && docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d'"
     id: 'deploy-vm'
 
 images:
