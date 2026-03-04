@@ -29,8 +29,8 @@ export default function Navbar() {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${scrolled || isArchive
-          ? 'bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-[0_2px_20px_rgba(88,75,119,0.06)]'
-          : 'bg-transparent border-b border-transparent'
+        ? 'bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-[0_2px_20px_rgba(88,75,119,0.06)]'
+        : 'bg-transparent border-b border-transparent'
         }`}
       aria-label="Main navigation"
     >
@@ -130,8 +130,8 @@ export default function Navbar() {
             <Instagram size={15} style={{ color: 'var(--color-violet)' }} />
           </a>
           <div className="w-px h-4 mx-1 bg-gray-300" aria-hidden="true" />
-          <a
-            href={isArchive ? '/#contact' : '#contact'}
+          <Link
+            to="/book"
             className="flex items-center gap-1.5 font-jakarta text-xs font-semibold uppercase tracking-widest px-4 py-2 rounded-sm border transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             style={{
               borderColor: 'var(--color-violet)',
@@ -148,7 +148,7 @@ export default function Navbar() {
           >
             <BookOpen size={12} />
             Hire Me
-          </a>
+          </Link>
         </div>
 
         {/* Mobile Hamburger */}

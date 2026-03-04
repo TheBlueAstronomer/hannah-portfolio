@@ -112,7 +112,6 @@ async function createFields() {
         field('date', 'date', 'datetime'),
         field('url', 'string', 'input'),
         field('excerpt', 'text', 'input-multiline', { note: 'Article teaser shown in the archive grid' }),
-        field('rss_guid', 'string', 'input', { note: 'RSS <guid> for deduplication — do not edit manually', hidden: true }),
         field('card_color', 'string', 'input'),
         field('accent_color', 'string', 'input'),
         field('sort', 'integer', 'input-default-value', { hidden: false }),

@@ -200,3 +200,178 @@ body::before {
     object-position: bottom left !important;
   }
 }
+
+/* ─── Services Section ────────────────────────────────────────────────────────── */
+.services-section {
+  background-color: var(--color-white);
+  position: relative;
+}
+
+/* The sticky inner wrapper that GSAP pins */
+.services-sticky {
+  background-color: var(--color-white);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.services-inner {
+  width: 100%;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 5rem 1.5rem 3rem;
+}
+
+/* Header */
+.services-header {
+  margin-bottom: 2.5rem;
+}
+
+.services-header__eyebrow {
+  font-family: var(--font-jakarta);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-violet);
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.services-header__heading {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  color: var(--color-violet);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+}
+
+.services-header__amp {
+  font-style: italic;
+  font-weight: 300;
+}
+
+.services-header__sub {
+  font-family: var(--font-jakarta);
+  font-size: 0.875rem;
+  color: var(--color-gray-mid);
+  max-width: 52ch;
+  line-height: 1.65;
+}
+
+/* Rows container */
+.services-rows {
+  margin-top: 0.25rem;
+}
+
+/* Individual row */
+.service-row {
+  will-change: transform, opacity;
+}
+
+.service-row__divider {
+  height: 1px;
+  background-color: var(--color-periwinkle);
+  opacity: 0.4;
+  width: 100%;
+}
+
+.service-row__inner {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr 1fr;
+  gap: 1.5rem 2.5rem;
+  align-items: start;
+  padding: 1.75rem 0;
+}
+
+/* Number */
+.service-row__number {
+  font-family: var(--font-jakarta);
+  font-size: 0.65rem;
+  color: var(--color-gray-mid);
+  letter-spacing: 0.05em;
+  padding-top: 0.25rem;
+}
+
+/* Service title */
+.service-row__title {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 2.8vw, 2rem);
+  color: var(--color-violet);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+/* Right column: description + CTA */
+.service-row__right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.service-row__desc {
+  font-family: var(--font-jakarta);
+  font-size: 0.8125rem;
+  color: var(--color-gray-mid);
+  line-height: 1.7;
+  max-width: 48ch;
+}
+
+/* Book CTA */
+.service-row__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-jakarta);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-violet);
+  border: 1px solid var(--color-violet);
+  padding: 0.45rem 0.85rem;
+  border-radius: 2px;
+  text-decoration: none;
+  letter-spacing: 0.03em;
+  transition: background-color 0.22s ease, color 0.22s ease;
+  white-space: nowrap;
+}
+
+.service-row__cta:hover {
+  background-color: var(--color-violet);
+  color: #fff;
+}
+
+.service-row__cta:active {
+  transform: scale(0.98);
+}
+
+/* ── Mobile (< 768px): single-column layout ────────────────────────────────── */
+@media (max-width: 767px) {
+  .services-inner {
+    padding: 4rem 1.25rem 2.5rem;
+  }
+
+  .service-row__inner {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 0.6rem;
+    padding: 1.4rem 0;
+  }
+
+  .service-row__number {
+    margin-bottom: 0;
+  }
+
+  .service-row__right {
+    gap: 1rem;
+  }
+
+  .service-row__cta {
+    width: 100%;
+    justify-content: center;
+  }
+}
