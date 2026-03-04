@@ -173,7 +173,7 @@ body::before {
 }
 
 .hero-portrait-img {
-  height: 75dvh;
+  height: 100dvh;
   /* Make portrait larger on mobile */
   object-position: bottom center !important;
   /* Ensure it stays anchored right while cropping left */
