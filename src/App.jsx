@@ -3,10 +3,11 @@ import { useEffect } from 'react';
 import Hero from './container/Header/Header';
 import LatestWork from './container/Portfolio/Portfolio';
 import Philosophy from './container/About/About';
-import Reviews from './container/Testimonial/Testimonial';
+import Services from './container/Services/Services';
 import Footer from './container/Footer/Footer';
 import Navbar from './components/Navbar/Navbar';
 import ArchivePage from './pages/ArchivePage';
+import BookPage from './pages/BookPage';
 
 import './index.css';
 
@@ -24,7 +25,7 @@ function Home() {
         <Hero />
         <LatestWork />
         <Philosophy />
-        <Reviews />
+        <Services />
       </main>
       <Footer />
     </div>
@@ -38,6 +39,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/archive" element={<ArchivePage />} />
+        <Route path="/book" element={<BookPage />} />
       </Routes>
     </>
   );

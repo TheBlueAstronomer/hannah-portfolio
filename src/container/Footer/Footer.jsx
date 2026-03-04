@@ -25,7 +25,7 @@ const SOCIAL_ICON_MAP = {
 };
 
 // Magnetic button — uses Framer Motion useMotionValue outside render cycle
-function MagneticButton({ children, href, outline, className, style }) {
+function MagneticButton({ children, href, to, outline, className, style }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const springX = useSpring(x, { stiffness: 150, damping: 15 });
@@ -44,15 +44,16 @@ function MagneticButton({ children, href, outline, className, style }) {
     y.set(0);
   };
 
-  return (
-    <motion.a
-      href={href}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{ x: springX, y: springY, ...style }}
-      className={`group relative inline-flex items-center gap-2 font-jakarta text-sm font-semibold uppercase tracking-widest px-8 py-4 rounded-sm overflow-hidden transition-all duration-300 ${className}`}
-      whileTap={{ scale: 0.97 }}
-    >
+  const sharedProps = {
+    onMouseMove: handleMouseMove,
+    onMouseLeave: handleMouseLeave,
+    style: { x: springX, y: springY, ...style },
+    className: `group relative inline-flex items-center gap-2 font-jakarta text-sm font-semibold uppercase tracking-widest px-8 py-4 rounded-sm overflow-hidden transition-all duration-300 ${className}`,
+    whileTap: { scale: 0.97 },
+  };
+
+  const inner = (
+    <>
       {/* Sliding background fill */}
       <span
         className="absolute inset-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-spring-bounce"
@@ -60,6 +61,31 @@ function MagneticButton({ children, href, outline, className, style }) {
         aria-hidden="true"
       />
       <span className="relative z-10 flex items-center gap-2">{children}</span>
+    </>
+  );
+
+  if (to) {
+    return (
+      <motion.div style={{ x: springX, y: springY }} whileTap={{ scale: 0.97 }} className="inline-flex">
+        <Link
+          to={to}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          className={`group relative inline-flex items-center gap-2 font-jakarta text-sm font-semibold uppercase tracking-widest px-8 py-4 rounded-sm overflow-hidden transition-all duration-300 ${className ?? ''}`}
+          style={style}
+        >
+          {inner}
+        </Link>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.a
+      href={href}
+      {...sharedProps}
+    >
+      {inner}
     </motion.a>
   );
 }
@@ -168,7 +194,7 @@ export default function Footer() {
             <div className="flex flex-wrap gap-4">
               {/* Primary CTA — solid white, email from CMS */}
               <MagneticButton
-                href={email}
+                to="/book"
                 style={{ backgroundColor: '#fff', color: 'var(--color-charcoal)' }}
               >
                 Start a Project
