@@ -79,6 +79,7 @@ body::before {
   display: inline-block;
   position: relative;
 }
+
 .editorial-line::after {
   content: '';
   position: absolute;
@@ -101,8 +102,15 @@ body::before {
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
 }
 
 /* Typewriter text */
@@ -120,13 +128,16 @@ body::before {
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--color-white);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--color-periwinkle);
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-violet);
 }
@@ -142,4 +153,35 @@ body::before {
   outline: 2px solid var(--color-violet);
   outline-offset: 3px;
   border-radius: 2px;
+}
+
+/* Hero: mobile-first portrait and panel positioning */
+.hero-panel {
+  width: 42%;
+}
+
+.hero-portrait {
+  right: 0;
+  left: auto;
+  z-index: 2;
+}
+
+.hero-portrait-img {
+  height: 55dvh;
+}
+
+@media (min-width: 768px) {
+  .hero-panel {
+    width: 48%;
+  }
+
+  .hero-portrait {
+    left: 45%;
+    right: auto;
+    z-index: 5;
+  }
+
+  .hero-portrait-img {
+    height: 96dvh;
+  }
 }
