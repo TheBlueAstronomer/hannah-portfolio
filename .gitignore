@@ -29,3 +29,5 @@ dist-ssr
 # Directus local data volumes
 directus/database/
 directus/uploads/
+
+.env
