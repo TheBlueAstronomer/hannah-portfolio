@@ -169,13 +169,13 @@ body::before {
   overflow: hidden;
   /* Crop any image bleed into the text area */
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 .hero-portrait-img {
-  height: 65dvh;
+  height: 75dvh;
   /* Make portrait larger on mobile */
-  object-position: bottom right !important;
+  object-position: bottom center !important;
   /* Ensure it stays anchored right while cropping left */
 }
 

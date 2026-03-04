@@ -175,17 +175,20 @@ export default function Hero() {
           </p>
 
           {/* Stats row */}
-          <div ref={addToTextRefs} className="flex items-start flex-wrap gap-x-5 gap-y-3 md:gap-x-8 mt-1">
+          <div ref={addToTextRefs} className="flex items-start flex-nowrap gap-x-3 md:gap-x-8 mt-1 pr-2">
             {stats.map(({ value, label }) => (
-              <div key={label} className="flex flex-col gap-0.5">
+              <div key={label} className="flex flex-col gap-0.5 shrink-0">
                 <span
-                  className="font-cormorant font-bold text-2xl md:text-3xl leading-none"
-                  style={{ color: 'var(--color-violet)' }}
+                  className="font-cormorant font-bold leading-none"
+                  style={{
+                    fontSize: 'clamp(1.35rem, 5vw, 1.875rem)',
+                    color: 'var(--color-violet)'
+                  }}
                 >
                   {value}
                 </span>
                 <span
-                  className="font-jakarta text-[9px] md:text-[10px] uppercase tracking-widest font-medium"
+                  className="font-jakarta text-[7.5px] sm:text-[9px] md:text-[10px] uppercase tracking-widest font-medium"
                   style={{ color: 'var(--color-gray-mid)' }}
                 >
                   {label}
