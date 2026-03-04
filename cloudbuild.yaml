@@ -29,8 +29,9 @@ steps:
     args:
       - '-c'
       - |
-        # Securely copy the Compose file to the VM
+        # Securely copy the Compose file and the Directus directory to the VM
         gcloud compute scp docker-compose.prod.yml portfolio-vm:/opt/hannah-portfolio/ --zone=asia-south1-a --quiet
+        gcloud compute scp --recurse directus portfolio-vm:/opt/hannah-portfolio/ --zone=asia-south1-a --quiet
         
         # SSH in to pull the new images and restart the containers
         gcloud compute ssh portfolio-vm --zone=asia-south1-a --quiet --command="sudo bash -c 'cd /opt/hannah-portfolio && gcloud auth configure-docker asia-south1-docker.pkg.dev --quiet && docker-compose -f docker-compose.prod.yml pull && docker-compose -f docker-compose.prod.yml up -d'"
