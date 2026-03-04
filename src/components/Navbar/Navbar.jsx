@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Linkedin, Twitter, Instagram, BookOpen } from 'lucide-react';
 
-const NAV_LINKS = ['Work', 'About', 'Contact'];
+const NAV_LINKS = [
+  { label: 'Work', href: '#work', isAnchor: true },
+  { label: 'About', href: '#about', isAnchor: true },
+  { label: 'Archive', href: '/archive', isAnchor: false },
+  { label: 'Contact', href: '#contact', isAnchor: true },
+];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+  const isArchive = location.pathname === '/archive';
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -13,9 +21,14 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  const isActive = (link) => {
+    if (!link.isAnchor) return location.pathname === link.href;
+    return false;
+  };
+
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${scrolled
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${scrolled || isArchive
           ? 'bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-[0_2px_20px_rgba(88,75,119,0.06)]'
           : 'bg-transparent border-b border-transparent'
         }`}
@@ -23,8 +36,8 @@ export default function Navbar() {
     >
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
         {/* Logo / Wordmark */}
-        <a
-          href="#home"
+        <Link
+          to="/"
           className="flex items-center gap-2 group"
           aria-label="Hannah Abraham — Home"
         >
@@ -46,25 +59,45 @@ export default function Navbar() {
           >
             / Entertainment Journalist
           </span>
-        </a>
+        </Link>
 
         {/* Desktop Nav Links */}
         <ul className="hidden md:flex items-center gap-1" role="list">
-          {NAV_LINKS.map((item) => (
-            <li key={item}>
-              <a
-                href={`#${item.toLowerCase()}`}
-                className="relative font-jakarta text-sm font-medium px-4 py-2 rounded-sm transition-colors duration-300 group"
-                style={{ color: scrolled ? 'var(--color-charcoal)' : 'var(--color-charcoal)' }}
-              >
-                {item}
-                <span
-                  className="absolute bottom-1 left-4 right-4 h-px scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"
-                  style={{ backgroundColor: 'var(--color-periwinkle)' }}
-                />
-              </a>
-            </li>
-          ))}
+          {NAV_LINKS.map((item) => {
+            const active = isActive(item);
+            return (
+              <li key={item.label}>
+                {item.isAnchor ? (
+                  <a
+                    href={isArchive ? `/${item.href}` : item.href}
+                    className="relative font-jakarta text-sm font-medium px-4 py-2 rounded-sm transition-colors duration-300 group"
+                    style={{ color: 'var(--color-charcoal)' }}
+                  >
+                    {item.label}
+                    <span
+                      className="absolute bottom-1 left-4 right-4 h-px scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"
+                      style={{ backgroundColor: 'var(--color-periwinkle)' }}
+                    />
+                  </a>
+                ) : (
+                  <Link
+                    to={item.href}
+                    className="relative font-jakarta text-sm font-medium px-4 py-2 rounded-sm transition-colors duration-300 group"
+                    style={{ color: active ? 'var(--color-violet)' : 'var(--color-charcoal)' }}
+                  >
+                    {item.label}
+                    <span
+                      className="absolute bottom-1 left-4 right-4 h-px transition-transform duration-300 origin-left"
+                      style={{
+                        backgroundColor: 'var(--color-periwinkle)',
+                        transform: active ? 'scaleX(1)' : 'scaleX(0)',
+                      }}
+                    />
+                  </Link>
+                )}
+              </li>
+            );
+          })}
         </ul>
 
         {/* Right: Social + CTA */}
@@ -98,7 +131,7 @@ export default function Navbar() {
           </a>
           <div className="w-px h-4 mx-1 bg-gray-300" aria-hidden="true" />
           <a
-            href="#contact"
+            href={isArchive ? '/#contact' : '#contact'}
             className="flex items-center gap-1.5 font-jakarta text-xs font-semibold uppercase tracking-widest px-4 py-2 rounded-sm border transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             style={{
               borderColor: 'var(--color-violet)',
@@ -147,18 +180,32 @@ export default function Navbar() {
       >
         <ul className="flex flex-col gap-2" role="list">
           {NAV_LINKS.map((item) => (
-            <li key={item}>
-              <a
-                href={`#${item.toLowerCase()}`}
-                onClick={() => setMobileOpen(false)}
-                className="block font-jakarta text-2xl font-semibold py-3 border-b transition-colors duration-200"
-                style={{
-                  color: 'var(--color-charcoal)',
-                  borderColor: 'var(--color-gray-light)',
-                }}
-              >
-                {item}
-              </a>
+            <li key={item.label}>
+              {item.isAnchor ? (
+                <a
+                  href={isArchive ? `/${item.href}` : item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="block font-jakarta text-2xl font-semibold py-3 border-b transition-colors duration-200"
+                  style={{
+                    color: 'var(--color-charcoal)',
+                    borderColor: 'var(--color-gray-light)',
+                  }}
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  to={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="block font-jakarta text-2xl font-semibold py-3 border-b transition-colors duration-200"
+                  style={{
+                    color: isActive(item) ? 'var(--color-violet)' : 'var(--color-charcoal)',
+                    borderColor: 'var(--color-gray-light)',
+                  }}
+                >
+                  {item.label}
+                </Link>
+              )}
             </li>
           ))}
         </ul>

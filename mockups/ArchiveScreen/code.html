@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hannah Abraham - Article Archive</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#584B77", // Deep Violet
+                        secondary: "#C3C0D8", // Soft Periwinkle
+                        "background-light": "#FFFFFF",
+                        "background-dark": "#1A1A1A", // Deep Charcoal
+                        "surface-light": "#F8F8FA",
+                        "surface-dark": "#2A2A2A",
+                        "text-light": "#1A1A1A",
+                        "text-dark": "#FFFFFF",
+                        "text-muted-light": "#666666",
+                        "text-muted-dark": "#A0A0A0",
+                    },
+                    fontFamily: {
+                        display: ['"Cormorant Garamond"', "serif"],
+                        body: ['"Plus Jakarta Sans"', "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                    },
+                    backgroundImage: {
+                        'hex-pattern': "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cpath d=\"M54.627 0l.83.477-27.14 47.006L1.18 0l.822-.477 26.315 45.58L54.627 0zM30 60L2.85 12.994l1.65-.953L30 57.14l25.5-45.1 1.65.954L30 60z\" fill=\"%23000000\" fill-opacity=\"0.05\" fill-rule=\"evenodd\"/%3E%3C/svg%3E')",
+                        'hex-pattern-dark': "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cpath d=\"M54.627 0l.83.477-27.14 47.006L1.18 0l.822-.477 26.315 45.58L54.627 0zM30 60L2.85 12.994l1.65-.953L30 57.14l25.5-45.1 1.65.954L30 60z\" fill=\"%23FFFFFF\" fill-opacity=\"0.05\" fill-rule=\"evenodd\"/%3E%3C/svg%3E')",
+                    }
+                },
+            },
+        };
+    </script>
+<style>
+        .glass-nav {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .magnetic-hover {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .magnetic-hover:hover {
+            transform: translateY(-4px);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark font-body antialiased bg-hex-pattern dark:bg-hex-pattern-dark min-h-screen flex flex-col">
+<nav class="fixed top-0 w-full z-50 glass-nav bg-white/80 dark:bg-background-dark/80 border-b border-gray-200 dark:border-gray-800 transition-colors duration-300">
+<div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+<a class="font-display font-bold text-3xl text-primary tracking-tight" href="#">Hannah<span class="font-light italic text-text-light dark:text-text-dark ml-2 text-xl">Abraham</span></a>
+<div class="hidden md:flex space-x-8 text-sm font-medium tracking-wide uppercase text-text-muted-light dark:text-text-muted-dark">
+<a class="hover:text-primary transition-colors" href="#">Work</a>
+<a class="text-primary font-semibold" href="#">Archive</a>
+<a class="hover:text-primary transition-colors" href="#">About</a>
+<a class="hover:text-primary transition-colors" href="#">Contact</a>
+</div>
+<button class="md:hidden text-text-light dark:text-text-dark">
+<span class="material-icons">menu</span>
+</button>
+</div>
+</nav>
+<main class="flex-grow pt-32 pb-24">
+<header class="max-w-7xl mx-auto px-6 mb-16 relative">
+<div class="absolute top-4 -left-4 w-48 h-24 bg-secondary/30 dark:bg-secondary/10 -z-10 rounded"></div>
+<p class="text-xs font-bold tracking-[0.2em] text-text-muted-light dark:text-text-muted-dark uppercase mb-4 pl-1">Selected Work</p>
+<h1 class="font-display text-6xl md:text-8xl text-primary font-medium leading-tight mb-6">
+                The Full <span class="italic font-light">Archive</span>
+</h1>
+<p class="max-w-2xl text-lg text-text-muted-light dark:text-text-muted-dark leading-relaxed">
+                A comprehensive collection of interviews, reviews, and cultural commentary spanning years of entertainment journalism.
+            </p>
+</header>
+<section class="max-w-7xl mx-auto px-6 mb-12">
+<div class="flex flex-col md:flex-row gap-4 items-center justify-between bg-surface-light dark:bg-surface-dark p-4 rounded-lg border border-gray-200 dark:border-gray-800">
+<div class="flex flex-wrap gap-4 w-full md:w-auto">
+<select class="bg-transparent border-gray-300 dark:border-gray-600 text-sm rounded focus:ring-primary focus:border-primary text-text-light dark:text-text-dark w-full md:w-auto">
+<option value="">All Publications</option>
+<option value="forbes">Forbes</option>
+<option value="deadline">Deadline</option>
+<option value="variety">Variety</option>
+</select>
+<select class="bg-transparent border-gray-300 dark:border-gray-600 text-sm rounded focus:ring-primary focus:border-primary text-text-light dark:text-text-dark w-full md:w-auto">
+<option value="">All Years</option>
+<option value="2024">2024</option>
+<option value="2023">2023</option>
+<option value="2022">2022</option>
+</select>
+</div>
+<div class="relative w-full md:w-64">
+<input class="w-full bg-transparent border-gray-300 dark:border-gray-600 text-sm rounded pl-10 focus:ring-primary focus:border-primary text-text-light dark:text-text-dark placeholder-gray-400" placeholder="Search articles..." type="text"/>
+<span class="material-icons absolute left-3 top-2.5 text-gray-400 text-sm">search</span>
+</div>
+</div>
+</section>
+<section class="max-w-7xl mx-auto px-6">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+<article class="group flex flex-col h-full bg-surface-light dark:bg-surface-dark rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 transition-shadow hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-black/50">
+<div class="relative h-64 overflow-hidden">
+<img alt="Vintage film camera on set" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsZeYnjHPzru5i4cPO4aYMy85fgxJtAcnSDuBv6Md8kVBpbM4WYJs7Ij5wNYPq_UtzxsH3tvkUgO6w6AdsJgig8b8aPPbdUR33q9Zf_ZW-5PJCORFony9_FIly8pGHW7FT3IvR9qGeNNBxIY2y6OW3uYJBe-qVeNGmXqwUep5MvOCKWG0OsGHMipccOyI_xBW0c-swTRd4UeufzKK-v9k9Up-PBPFBUrrEpvo9Bd9UhmWAWVnZ68azIlgWZGEn-8bOSq5BsXYugSvs"/>
+<div class="absolute top-4 left-4">
+<span class="bg-secondary/90 text-primary text-xs font-bold uppercase tracking-wider py-1 px-3 rounded-sm backdrop-blur-sm">Interview</span>
+</div>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex items-center text-xs text-text-muted-light dark:text-text-muted-dark uppercase tracking-wide mb-3">
+<span>Deadline</span>
+<span class="mx-2">•</span>
+<span>Oct 2024</span>
+</div>
+<h2 class="font-display text-2xl font-semibold text-primary leading-snug mb-4 group-hover:text-opacity-80 transition-colors">
+                            The Evolution of the Modern Blockbuster: A Conversation with Leading Directors
+                        </h2>
+<p class="text-sm text-text-muted-light dark:text-text-muted-dark mb-6 line-clamp-3">
+                            Exploring how audience expectations and streaming platforms have fundamentally altered the landscape of summer tentpole films over the last decade.
+                        </p>
+<div class="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
+<a class="inline-flex items-center text-sm font-bold text-primary magnetic-hover" href="#">
+                                Read Article
+                                <span class="material-icons text-sm ml-1">arrow_forward</span>
+</a>
+</div>
+</div>
+</article>
+<article class="group flex flex-col h-full bg-surface-light dark:bg-surface-dark rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 transition-shadow hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-black/50">
+<div class="relative h-64 overflow-hidden">
+<img alt="Empty cinema seating" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLEqod5-Av1qHpcEgtp3KEv0mUf_JxftnxaeuhoIlcHgMVDakY-oDtZ9EbScXRZr8yDWn2U8Br85P18YSrASCAA9HsCLJ2ICKtjTf_9NhwH_UJXQoyokXXLj4hVkgGYssU90GB2HDSeve6aLJ5Xe49fMALOtzl2hicXlUKqEOBKm3vKUTTcfAzgm_JSXpySCP0MWcPPNt4NRMV6TPPlgTnpdaIYcaMwlcrKgpGGZFtzz0OQpXjGL2FkatxXGEtBkJjJ148uz0MLA6v"/>
+<div class="absolute top-4 left-4">
+<span class="bg-secondary/90 text-primary text-xs font-bold uppercase tracking-wider py-1 px-3 rounded-sm backdrop-blur-sm">Review</span>
+</div>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex items-center text-xs text-text-muted-light dark:text-text-muted-dark uppercase tracking-wide mb-3">
+<span>Forbes</span>
+<span class="mx-2">•</span>
+<span>Sep 2024</span>
+</div>
+<h2 class="font-display text-2xl font-semibold text-primary leading-snug mb-4 group-hover:text-opacity-80 transition-colors">
+                            'Echoes in the Dark' is a Masterclass in Subtle Tension
+                        </h2>
+<p class="text-sm text-text-muted-light dark:text-text-muted-dark mb-6 line-clamp-3">
+                            A deep dive into the psychological thriller that relies on what you don't see, redefining the boundaries of independent cinema this year.
+                        </p>
+<div class="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
+<a class="inline-flex items-center text-sm font-bold text-primary magnetic-hover" href="#">
+                                Read Article
+                                <span class="material-icons text-sm ml-1">arrow_forward</span>
+</a>
+</div>
+</div>
+</article>
+<article class="group flex flex-col h-full bg-surface-light dark:bg-surface-dark rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 transition-shadow hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-black/50">
+<div class="relative h-64 overflow-hidden">
+<img alt="Microphone in studio" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuApm878KKcBurCS1Ecbs8Ud1LJO2t6AEfs9pUOHlyuk35YyUbS8zhGHtko0ONiErDZ05iAyjyThvQiqpoK8S8zjROZ-sezxjSwVhqsna2_eINGNy4oWsIeOnuzKxfKq82dNOp7yQqFkQDHZNJIWcyhRF7OfLXXttutkpcQ6SXYqNiXHMsxIMVYVIkZ21xvgz35v7s-lbS15oyJEYgRrKZZcwJTJ3YtWA2fCA80u6cR7zuEqPlEeaYJZXkh6Zw6CESv6i0I_bVxPf002"/>
+<div class="absolute top-4 left-4">
+<span class="bg-secondary/90 text-primary text-xs font-bold uppercase tracking-wider py-1 px-3 rounded-sm backdrop-blur-sm">Profile</span>
+</div>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex items-center text-xs text-text-muted-light dark:text-text-muted-dark uppercase tracking-wide mb-3">
+<span>Variety</span>
+<span class="mx-2">•</span>
+<span>Aug 2024</span>
+</div>
+<h2 class="font-display text-2xl font-semibold text-primary leading-snug mb-4 group-hover:text-opacity-80 transition-colors">
+                            The Unseen Architect of Sound: Meet the Composer Behind the Year's Biggest Hits
+                        </h2>
+<p class="text-sm text-text-muted-light dark:text-text-muted-dark mb-6 line-clamp-3">
+                            An exclusive look into the studio and mind of the elusive musician whose scores have defined the emotional landscape of contemporary cinema.
+                        </p>
+<div class="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
+<a class="inline-flex items-center text-sm font-bold text-primary magnetic-hover" href="#">
+                                Read Article
+                                <span class="material-icons text-sm ml-1">arrow_forward</span>
+</a>
+</div>
+</div>
+</article>
+<article class="group flex flex-col h-full bg-surface-light dark:bg-surface-dark rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 transition-shadow hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-black/50">
+<div class="relative h-64 overflow-hidden">
+<img alt="Red carpet event" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQ07RJILlDieumxCBlP65Rq8_gpP3a_Z8hVboV9JQMrESbYofD__wZI6LBReGm6PkSSAxsuqtmuiTDDCy0IwJ95o2mx0t87uG4vUDDxm-p2mEhiVprYQ7oQ33xu2uRu27u0JXmtUHrzJysJpbwL3tY8y1zV3MdGXM0_6VZJyZTSCYGbu_Rmc-JLiX5zZNc37WUyDd0fBXZ3cvXPrTek2hmdeb6YYu0tyfIpgwHESN2PY2a5UewGuDdTUXY05HvVv06DF8JAnmQzekZ"/>
+<div class="absolute top-4 left-4">
+<span class="bg-secondary/90 text-primary text-xs font-bold uppercase tracking-wider py-1 px-3 rounded-sm backdrop-blur-sm">Editorial</span>
+</div>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex items-center text-xs text-text-muted-light dark:text-text-muted-dark uppercase tracking-wide mb-3">
+<span>Deadline</span>
+<span class="mx-2">•</span>
+<span>Jul 2024</span>
+</div>
+<h2 class="font-display text-2xl font-semibold text-primary leading-snug mb-4 group-hover:text-opacity-80 transition-colors">
+                            The Death of the Movie Star: Or Just a Rebranding?
+                        </h2>
+<p class="text-sm text-text-muted-light dark:text-text-muted-dark mb-6 line-clamp-3">
+                            Analyzing the shift from personality-driven box office success to IP-driven franchises, and what it means for the next generation of actors.
+                        </p>
+<div class="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
+<a class="inline-flex items-center text-sm font-bold text-primary magnetic-hover" href="#">
+                                Read Article
+                                <span class="material-icons text-sm ml-1">arrow_forward</span>
+</a>
+</div>
+</div>
+</article>
+</div>
+<div class="mt-16 flex justify-center">
+<nav class="flex items-center space-x-2">
+<button class="p-2 border border-gray-200 dark:border-gray-700 rounded text-gray-400 hover:text-primary hover:border-primary transition-colors disabled:opacity-50" disabled="">
+<span class="material-icons text-sm">chevron_left</span>
+</button>
+<button class="w-10 h-10 border border-primary bg-primary text-white rounded font-medium text-sm">1</button>
+<button class="w-10 h-10 border border-gray-200 dark:border-gray-700 rounded text-text-light dark:text-text-dark hover:border-primary hover:text-primary transition-colors font-medium text-sm">2</button>
+<button class="w-10 h-10 border border-gray-200 dark:border-gray-700 rounded text-text-light dark:text-text-dark hover:border-primary hover:text-primary transition-colors font-medium text-sm">3</button>
+<span class="px-2 text-gray-400">...</span>
+<button class="p-2 border border-gray-200 dark:border-gray-700 rounded text-text-light dark:text-text-dark hover:text-primary hover:border-primary transition-colors">
+<span class="material-icons text-sm">chevron_right</span>
+</button>
+</nav>
+</div>
+</section>
+</main>
+<footer class="bg-background-dark text-white rounded-t-[4rem] pt-20 pb-10 px-6 mt-12">
+<div class="max-w-7xl mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16 border-b border-gray-800 pb-16">
+<div>
+<h3 class="font-display text-4xl md:text-5xl font-medium mb-6">Let's build the <br/><span class="italic font-light">story together.</span></h3>
+<p class="text-gray-400 text-sm max-w-sm mb-8">Available for features, interviews, film criticism, cultural commentary, and long-form investigative journalism.</p>
+<div class="flex gap-4">
+<a class="bg-white text-background-dark px-6 py-3 rounded text-sm font-bold uppercase tracking-wider hover:bg-gray-200 transition-colors inline-flex items-center" href="#">
+                            Start a Project
+                            <span class="material-icons text-sm ml-2">arrow_forward</span>
+</a>
+</div>
+</div>
+<div class="flex flex-col md:items-end justify-center space-y-4 text-sm font-medium tracking-wide uppercase text-gray-400">
+<a class="hover:text-white transition-colors" href="#">Work</a>
+<a class="hover:text-white transition-colors" href="#">About</a>
+<a class="hover:text-white transition-colors" href="#">Contact</a>
+</div>
+</div>
+<div class="flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
+<div class="mb-4 md:mb-0">
+<span class="font-display text-lg text-white block mb-1">Hannah Abraham</span>
+<span>Entertainment Journalist</span>
+</div>
+<div class="flex space-x-6">
+<a class="hover:text-white transition-colors" href="#">LinkedIn</a>
+<a class="hover:text-white transition-colors" href="#">Twitter</a>
+<a class="hover:text-white transition-colors" href="#">Instagram</a>
+</div>
+<div class="mt-4 md:mt-0 text-right">
+<p>© 2024 Hannah Abraham. All rights reserved.</p>
+</div>
+</div>
+</div>
+</footer>
+
+</body></html>

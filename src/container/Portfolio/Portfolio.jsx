@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { gsap } from 'gsap';
 import { ExternalLink, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { readItems } from '@directus/sdk';
 import { directus, DIRECTUS_URL } from '../../directus';
 
@@ -662,16 +663,14 @@ export default function LatestWork() {
               <span className="font-light italic">from the desk</span>
             </h2>
           </div>
-          <a
-            href="https://www.forbes.com/sites/hannahabraham/"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to="/archive"
             className="flex items-center gap-2 font-jakarta text-sm font-medium self-start md:self-auto transition-all duration-200 hover:gap-3"
             style={{ color: 'var(--color-violet)' }}
           >
             View All Articles
-            <ExternalLink size={14} />
-          </a>
+            <ArrowRight size={14} />
+          </Link>
         </div>
 
         {/* Cards bento grid — intentionally asymmetric */}

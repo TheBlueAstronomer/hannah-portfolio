@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { ArrowRight, Linkedin, Twitter, Instagram, Mail } from 'lucide-react';
 import { useSiteSettings } from '../../hooks/useDirectus';
@@ -63,7 +64,12 @@ function MagneticButton({ children, href, outline, className, style }) {
   );
 }
 
-const NAV_FOOTER = ['Work', 'About', 'Contact'];
+const NAV_FOOTER = [
+  { label: 'Work', href: '#work', isAnchor: true },
+  { label: 'Archive', href: '/archive', isAnchor: false },
+  { label: 'About', href: '#about', isAnchor: true },
+  { label: 'Contact', href: '#contact', isAnchor: true },
+];
 
 export default function Footer() {
   const { settings } = useSiteSettings();
@@ -208,16 +214,28 @@ export default function Footer() {
           <nav aria-label="Footer navigation">
             <ul className="flex items-center gap-6" role="list">
               {NAV_FOOTER.map((item) => (
-                <li key={item}>
-                  <a
-                    href={`#${item.toLowerCase()}`}
-                    className="font-jakarta text-xs uppercase tracking-widest font-medium transition-colors duration-200"
-                    style={{ color: 'rgba(255,255,255,0.45)' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-periwinkle)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
-                  >
-                    {item}
-                  </a>
+                <li key={item.label}>
+                  {item.isAnchor ? (
+                    <a
+                      href={item.href}
+                      className="font-jakarta text-xs uppercase tracking-widest font-medium transition-colors duration-200"
+                      style={{ color: 'rgba(255,255,255,0.45)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-periwinkle)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
+                    >
+                      {item.label}
+                    </a>
+                  ) : (
+                    <Link
+                      to={item.href}
+                      className="font-jakarta text-xs uppercase tracking-widest font-medium transition-colors duration-200"
+                      style={{ color: 'rgba(255,255,255,0.45)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-periwinkle)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
+                    >
+                      {item.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

@@ -4,6 +4,7 @@
     "description": "Self-hosted Directus CMS for Hannah Portfolio",
     "private": true,
     "dependencies": {
-        "directus": "^11.15.4"
+        "directus": "^11.15.4",
+        "xml2js": "^0.6.2"
     }
 }
