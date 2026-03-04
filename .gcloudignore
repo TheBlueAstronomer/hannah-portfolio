@@ -1,0 +1,7 @@
+.git
+node_modules
+dist
+.env
+.DS_Store
+*.log
+directus-cms/node_modules/

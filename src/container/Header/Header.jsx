@@ -98,11 +98,10 @@ export default function Hero() {
       className="relative h-[100dvh] w-full overflow-hidden"
       aria-label="Hero — Hannah Abraham"
     >
-      {/* Full-bleed right periwinkle panel */}
+      {/* Right periwinkle panel — narrower on mobile, full 48% on desktop */}
       <div
-        className="absolute top-0 right-0 h-full pointer-events-none"
+        className="hero-panel absolute top-0 right-0 h-full pointer-events-none"
         style={{
-          width: '48%',
           backgroundColor: 'var(--color-periwinkle)',
           opacity: 0.55,
           zIndex: 0,
@@ -110,90 +109,86 @@ export default function Hero() {
         aria-hidden="true"
       />
 
-      {/* Portrait — absolutely positioned so body straddles the column seam */}
+      {/* Portrait — mobile: bottom-right, behind text; desktop: straddles column seam */}
       <div
         ref={portraitRef}
-        className="absolute bottom-0 select-none pointer-events-none"
-        style={{
-          left: '45%',
-          zIndex: 5,
-          willChange: 'transform',
-        }}
+        className="hero-portrait absolute bottom-0 select-none pointer-events-none"
+        style={{ willChange: 'transform' }}
         aria-hidden="true"
       >
         <img
           src={profileImg}
           alt="Hannah Abraham — Entertainment Journalist"
-          className="w-auto block"
+          className="hero-portrait-img w-auto block"
           style={{
-            height: '96dvh',
             maxWidth: 'none',
-            objectFit: 'contain',
-            objectPosition: 'bottom left',
           }}
           draggable="false"
         />
       </div>
 
-      {/* Text content — single column, padded right to not overlap portrait body */}
-      <div className="relative z-10 h-full w-full max-w-[1400px] mx-auto px-6 md:px-10 flex items-center">
-        <div className="flex flex-col justify-center gap-6 pt-20 pb-10 w-full md:w-[52%]">
+      {/* Text content */}
+      <div className="relative z-10 h-full w-full max-w-[1400px] mx-auto px-5 md:px-10 flex items-center">
+        <div className="flex flex-col justify-center gap-4 md:gap-6 pt-20 pb-10 w-[58%] md:w-[52%]">
 
           {/* Category label */}
-          <div ref={addToTextRefs} className="flex items-center gap-3">
+          <div ref={addToTextRefs} className="flex items-center gap-2 md:gap-3">
             <span
-              className="inline-block w-8 h-px"
+              className="inline-block w-6 md:w-8 h-px shrink-0"
               style={{ backgroundColor: 'var(--color-violet)' }}
               aria-hidden="true"
             />
             <span
-              className="font-jakarta text-xs uppercase tracking-[0.28em] font-semibold"
+              className="font-jakarta text-[10px] md:text-xs uppercase tracking-[0.22em] md:tracking-[0.28em] font-semibold leading-tight"
               style={{ color: 'var(--color-violet)' }}
             >
               Entertainment Journalist
             </span>
           </div>
 
-          {/* Primary name — Cormorant Garamond bold serif */}
+          {/* Primary name */}
           <div ref={addToTextRefs}>
             <h1
               className="font-cormorant font-bold leading-[0.88] tracking-tight"
               style={{
-                fontSize: 'clamp(5rem, 11vw, 9.5rem)',
+                fontSize: 'clamp(3.4rem, 10vw, 9.5rem)',
                 color: 'var(--color-violet)',
               }}
             >
               Hannah
             </h1>
             <span
-              className="font-jakarta font-light tracking-[0.32em] uppercase text-sm md:text-base"
+              className="font-jakarta font-light tracking-[0.24em] md:tracking-[0.32em] uppercase text-xs md:text-base"
               style={{ color: 'var(--color-charcoal)' }}
             >
               Abraham
             </span>
           </div>
 
-          {/* Descriptor — from Directus */}
+          {/* Descriptor */}
           <p
             ref={addToTextRefs}
-            className="font-jakarta text-base md:text-lg leading-relaxed max-w-[44ch]"
+            className="font-jakarta text-sm md:text-lg leading-relaxed max-w-[32ch] md:max-w-[44ch]"
             style={{ color: 'var(--color-gray-mid)' }}
           >
             {descriptor}
           </p>
 
-          {/* Stats row — from Directus */}
-          <div ref={addToTextRefs} className="flex items-center gap-8 mt-2">
+          {/* Stats row */}
+          <div ref={addToTextRefs} className="flex items-start flex-nowrap gap-x-3 md:gap-x-8 mt-1 pr-2">
             {stats.map(({ value, label }) => (
-              <div key={label} className="flex flex-col gap-0.5">
+              <div key={label} className="flex flex-col gap-0.5 shrink-0">
                 <span
-                  className="font-cormorant font-bold text-3xl leading-none"
-                  style={{ color: 'var(--color-violet)' }}
+                  className="font-cormorant font-bold leading-none"
+                  style={{
+                    fontSize: 'clamp(1.35rem, 5vw, 1.875rem)',
+                    color: 'var(--color-violet)'
+                  }}
                 >
                   {value}
                 </span>
                 <span
-                  className="font-jakarta text-[10px] uppercase tracking-widest font-medium"
+                  className="font-jakarta text-[7.5px] sm:text-[9px] md:text-[10px] uppercase tracking-widest font-medium"
                   style={{ color: 'var(--color-gray-mid)' }}
                 >
                   {label}
@@ -203,23 +198,23 @@ export default function Hero() {
           </div>
 
           {/* CTA buttons */}
-          <div ref={addToTextRefs} className="flex flex-wrap items-center gap-4 mt-2">
+          <div ref={addToTextRefs} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-1">
             <a
               href="#work"
-              className="group relative flex items-center gap-2 font-jakarta text-sm font-semibold uppercase tracking-widest px-7 py-3.5 overflow-hidden rounded-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              className="group relative flex items-center justify-center gap-2 font-jakarta text-xs md:text-sm font-semibold uppercase tracking-widest px-5 md:px-7 py-3 md:py-3.5 overflow-hidden rounded-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
               style={{
                 backgroundColor: 'var(--color-violet)',
                 color: '#fff',
               }}
             >
               <span className="relative z-10 flex items-center gap-2">
-                <Pen size={13} />
+                <Pen size={12} />
                 Read My Work
               </span>
             </a>
             <a
               href="#contact"
-              className="group relative flex items-center gap-2 font-jakarta text-sm font-semibold uppercase tracking-widest px-7 py-3.5 overflow-hidden rounded-sm border transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              className="group relative flex items-center justify-center gap-2 font-jakarta text-xs md:text-sm font-semibold uppercase tracking-widest px-5 md:px-7 py-3 md:py-3.5 overflow-hidden rounded-sm border transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
               style={{
                 borderColor: 'var(--color-violet)',
                 color: 'var(--color-violet)',
@@ -234,13 +229,13 @@ export default function Hero() {
               }}
             >
               Get In Touch
-              <ArrowDownRight size={13} />
+              <ArrowDownRight size={12} />
             </a>
           </div>
         </div>
       </div>
 
-      {/* Far-right vertical tracking text (editorial device) */}
+      {/* Far-right vertical tracking text (desktop only) */}
       <div
         className="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-20 items-center pr-4"
         style={{ writingMode: 'vertical-rl', transform: 'translateY(-50%) rotate(180deg)' }}

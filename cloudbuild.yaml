@@ -1,10 +1,17 @@
 steps:
+  # Pull the cached image from Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args: ['-c', 'docker pull asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:latest || exit 0']
+
   # 1. Build the Frontend Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
       - '--build-arg'
       - 'VITE_DIRECTUS_URL=http://34.100.194.88:8055'
+      - '--cache-from'
+      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:latest'
       - '-t'
       - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:$COMMIT_SHA'
       - '-t'
