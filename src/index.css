@@ -164,10 +164,19 @@ body::before {
   right: 0;
   left: auto;
   z-index: 2;
+  width: 42%;
+  /* Confine portrait container to the right panel width */
+  overflow: hidden;
+  /* Crop any image bleed into the text area */
+  display: flex;
+  justify-content: flex-end;
 }
 
 .hero-portrait-img {
-  height: 55dvh;
+  height: 65dvh;
+  /* Make portrait larger on mobile */
+  object-position: bottom right !important;
+  /* Ensure it stays anchored right while cropping left */
 }
 
 @media (min-width: 768px) {
@@ -179,9 +188,15 @@ body::before {
     left: 45%;
     right: auto;
     z-index: 5;
+    width: auto;
+    /* Reset to allow desktop bleed */
+    overflow: visible;
+    /* allow desktop bleed */
+    display: block;
   }
 
   .hero-portrait-img {
     height: 96dvh;
+    object-position: bottom left !important;
   }
 }

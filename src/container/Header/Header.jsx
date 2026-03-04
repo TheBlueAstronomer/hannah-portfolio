@@ -122,8 +122,6 @@ export default function Hero() {
           className="hero-portrait-img w-auto block"
           style={{
             maxWidth: 'none',
-            objectFit: 'contain',
-            objectPosition: 'bottom left',
           }}
           draggable="false"
         />
