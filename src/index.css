@@ -200,7 +200,7 @@ body::before {
 }
 
 .hero-portrait-img {
-  height: 100dvh;
+  height: 80dvh;
   object-position: bottom center !important;
 }
 
@@ -219,7 +219,7 @@ body::before {
   }
 
   .hero-portrait-img {
-    height: 96dvh;
+    height: 75dvh;
     object-position: bottom left !important;
   }
 }
