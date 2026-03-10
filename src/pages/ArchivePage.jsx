@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import PropTypes from 'prop-types';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Link } from 'react-router-dom';
 import { Search, ArrowRight, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import Navbar from '../components/Navbar/Navbar';
 import Footer from '../container/Footer/Footer';
 import { readItems } from '@directus/sdk';
-import { directus, DIRECTUS_URL } from '../directus';
+import { directus } from '../directus';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -188,6 +188,19 @@ function getYear(dateStr) {
 
 // ─── ARTICLE CARD ─────────────────────────────────────────────────────────────
 
+ArticleCard.propTypes = {
+    article: PropTypes.shape({
+        img: PropTypes.string,
+        title: PropTypes.string,
+        category: PropTypes.string,
+        publication: PropTypes.string,
+        date: PropTypes.string,
+        excerpt: PropTypes.string,
+        url: PropTypes.string,
+    }).isRequired,
+    index: PropTypes.number.isRequired,
+};
+
 function ArticleCard({ article, index }) {
     const cardRef = useRef(null);
 
@@ -222,7 +235,7 @@ function ArticleCard({ article, index }) {
             style={{ opacity: 0 }}
         >
             {/* Image */}
-            <div className="relative overflow-hidden aspect-[16/10] mb-5 rounded-sm">
+            <div className="relative overflow-hidden aspect-[16/10] mb-5">
                 <img
                     src={article.img}
                     alt={article.title}
@@ -231,13 +244,7 @@ function ArticleCard({ article, index }) {
                 />
                 {/* Category badge */}
                 <div className="absolute top-3 left-3">
-                    <span
-                        className="font-jakarta text-[9px] font-bold uppercase tracking-[0.22em] px-2.5 py-1 rounded-sm backdrop-blur-sm"
-                        style={{
-                            backgroundColor: 'rgba(195,192,216,0.92)',
-                            color: 'var(--color-violet)',
-                        }}
-                    >
+                    <span className="tag-gold">
                         {article.category}
                     </span>
                 </div>
@@ -246,15 +253,15 @@ function ArticleCard({ article, index }) {
             {/* Meta */}
             <div className="flex items-center gap-2 mb-3">
                 <span
-                    className="font-jakarta text-[10px] uppercase tracking-widest font-semibold"
-                    style={{ color: 'var(--color-violet)' }}
+                    className="font-ui uppercase"
+                    style={{ fontSize: '0.6rem', letterSpacing: '0.1em', fontWeight: 600, color: 'var(--color-charcoal)', opacity: 0.7 }}
                 >
                     {article.publication}
                 </span>
-                <span style={{ color: 'var(--color-gray-light)' }}>·</span>
+                <span style={{ color: 'rgba(26,26,26,0.25)' }}>·</span>
                 <span
-                    className="font-jakarta text-[10px] uppercase tracking-widest"
-                    style={{ color: 'var(--color-gray-mid)' }}
+                    className="font-sans"
+                    style={{ fontSize: '0.65rem', color: 'var(--color-text-secondary)', opacity: 0.7 }}
                 >
                     {formatDate(article.date)}
                 </span>
@@ -262,12 +269,12 @@ function ArticleCard({ article, index }) {
 
             {/* Title */}
             <h2
-                className="font-cormorant font-semibold leading-snug mb-3 flex-1 transition-colors duration-200"
+                className="font-serif font-semibold leading-snug mb-3 flex-1 transition-colors duration-200"
                 style={{
                     fontSize: 'clamp(1.1rem, 2vw, 1.35rem)',
                     color: 'var(--color-charcoal)',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-violet)')}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-gold)')}
                 onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-charcoal)')}
             >
                 {article.title}
@@ -275,8 +282,8 @@ function ArticleCard({ article, index }) {
 
             {/* Excerpt */}
             <p
-                className="font-jakarta text-sm leading-relaxed mb-4 line-clamp-2"
-                style={{ color: 'var(--color-gray-mid)' }}
+                className="font-sans text-sm leading-relaxed mb-4 line-clamp-2"
+                style={{ color: 'var(--color-text-secondary)', fontWeight: 300 }}
             >
                 {article.excerpt}
             </p>
@@ -284,7 +291,7 @@ function ArticleCard({ article, index }) {
             {/* Divider */}
             <div
                 className="h-px w-full mb-4"
-                style={{ backgroundColor: 'var(--color-gray-light)' }}
+                style={{ backgroundColor: 'rgba(26,26,26,0.1)' }}
                 aria-hidden="true"
             />
 
@@ -293,11 +300,13 @@ function ArticleCard({ article, index }) {
                 href={article.url}
                 target={article.url !== '#' ? '_blank' : undefined}
                 rel={article.url !== '#' ? 'noopener noreferrer' : undefined}
-                className="group/link inline-flex items-center gap-1.5 font-jakarta text-xs font-semibold uppercase tracking-widest transition-all duration-200 self-start"
-                style={{ color: 'var(--color-violet)' }}
+                className="group/link inline-flex items-center gap-1.5 font-ui uppercase transition-all duration-200 self-start"
+                style={{ fontSize: '0.65rem', letterSpacing: '0.1em', fontWeight: 600, color: 'var(--color-charcoal)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-gold)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-charcoal)')}
                 aria-label={`Read article: ${article.title}`}
             >
-                Read Article
+                Read article
                 <ArrowRight
                     size={11}
                     className="transition-transform duration-200 group-hover/link:translate-x-1"
@@ -309,17 +318,27 @@ function ArticleCard({ article, index }) {
 
 // ─── FILTER CHIP ─────────────────────────────────────────────────────────────
 
+FilterSelect.propTypes = {
+    label: PropTypes.string.isRequired,
+    value: PropTypes.string.isRequired,
+    options: PropTypes.arrayOf(PropTypes.string).isRequired,
+    onChange: PropTypes.func.isRequired,
+};
+
 function FilterSelect({ label, value, options, onChange }) {
     return (
         <div className="relative">
             <select
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="appearance-none font-jakarta text-sm font-medium pl-4 pr-9 py-2.5 rounded-sm border cursor-pointer transition-all duration-200 bg-white focus:outline-none focus:ring-2"
+                className="appearance-none font-ui text-xs font-semibold uppercase pl-4 pr-9 py-2.5 cursor-pointer transition-all duration-200 focus:outline-none focus:ring-2"
                 style={{
-                    borderColor: value !== options[0] ? 'var(--color-violet)' : 'var(--color-gray-light)',
-                    color: value !== options[0] ? 'var(--color-violet)' : 'var(--color-charcoal)',
-                    focusRingColor: 'var(--color-periwinkle)',
+                    letterSpacing: '0.08em',
+                    borderRadius: '2px',
+                    border: '1px solid',
+                    borderColor: value !== options[0] ? 'var(--color-gold)' : 'rgba(26,26,26,0.15)',
+                    color: value !== options[0] ? 'var(--color-charcoal)' : 'var(--color-text-secondary)',
+                    backgroundColor: 'var(--color-bg-secondary)',
                 }}
                 aria-label={label}
             >
@@ -337,7 +356,7 @@ function FilterSelect({ label, value, options, onChange }) {
                 aria-hidden="true"
             >
                 <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-                    style={{ color: value !== options[0] ? 'var(--color-violet)' : 'var(--color-gray-mid)' }}
+                    style={{ color: value !== options[0] ? 'var(--color-gold)' : 'var(--color-text-secondary)' }}
                 />
             </svg>
         </div>
@@ -345,6 +364,12 @@ function FilterSelect({ label, value, options, onChange }) {
 }
 
 // ─── PAGINATION ───────────────────────────────────────────────────────────────
+
+Pagination.propTypes = {
+    current: PropTypes.number.isRequired,
+    total: PropTypes.number.isRequired,
+    onChange: PropTypes.func.isRequired,
+};
 
 function Pagination({ current, total, onChange }) {
     const pages = Array.from({ length: total }, (_, i) => i + 1);
@@ -362,8 +387,8 @@ function Pagination({ current, total, onChange }) {
             <button
                 onClick={() => onChange(current - 1)}
                 disabled={current === 1}
-                className="w-9 h-9 flex items-center justify-center rounded-sm border transition-all duration-200 disabled:opacity-30"
-                style={{ borderColor: 'var(--color-gray-light)', color: 'var(--color-charcoal)' }}
+                className="w-9 h-9 flex items-center justify-center border transition-all duration-200 disabled:opacity-30"
+                style={{ borderColor: 'rgba(26,26,26,0.15)', color: 'var(--color-charcoal)', borderRadius: '2px' }}
                 aria-label="Previous page"
             >
                 <ChevronLeft size={14} />
@@ -373,13 +398,13 @@ function Pagination({ current, total, onChange }) {
                 <>
                     <button
                         onClick={() => onChange(1)}
-                        className="w-9 h-9 font-jakarta text-sm font-medium rounded-sm border transition-all duration-200"
-                        style={{ borderColor: 'var(--color-gray-light)', color: 'var(--color-charcoal)' }}
+                        className="w-9 h-9 font-ui text-xs font-semibold border transition-all duration-200"
+                        style={{ borderColor: 'rgba(26,26,26,0.15)', color: 'var(--color-charcoal)', borderRadius: '2px' }}
                     >
                         1
                     </button>
                     {visiblePages[0] > 2 && (
-                        <span className="font-jakarta text-sm px-1" style={{ color: 'var(--color-gray-mid)' }}>…</span>
+                        <span className="font-sans text-sm px-1" style={{ color: 'var(--color-text-secondary)' }}>…</span>
                     )}
                 </>
             )}
@@ -388,11 +413,12 @@ function Pagination({ current, total, onChange }) {
                 <button
                     key={p}
                     onClick={() => onChange(p)}
-                    className="w-9 h-9 font-jakarta text-sm font-medium rounded-sm border transition-all duration-200"
+                    className="w-9 h-9 font-ui text-xs font-semibold border transition-all duration-200"
                     style={{
-                        backgroundColor: p === current ? 'var(--color-violet)' : 'transparent',
-                        borderColor: p === current ? 'var(--color-violet)' : 'var(--color-gray-light)',
-                        color: p === current ? '#fff' : 'var(--color-charcoal)',
+                        backgroundColor: p === current ? 'var(--color-gold)' : 'transparent',
+                        borderColor: p === current ? 'var(--color-gold)' : 'rgba(26,26,26,0.15)',
+                        color: p === current ? 'var(--color-charcoal)' : 'var(--color-charcoal)',
+                        borderRadius: '2px',
                     }}
                     aria-current={p === current ? 'page' : undefined}
                     aria-label={`Page ${p}`}
@@ -404,12 +430,12 @@ function Pagination({ current, total, onChange }) {
             {visiblePages[visiblePages.length - 1] < total && (
                 <>
                     {visiblePages[visiblePages.length - 1] < total - 1 && (
-                        <span className="font-jakarta text-sm px-1" style={{ color: 'var(--color-gray-mid)' }}>…</span>
+                        <span className="font-sans text-sm px-1" style={{ color: 'var(--color-text-secondary)' }}>…</span>
                     )}
                     <button
                         onClick={() => onChange(total)}
-                        className="w-9 h-9 font-jakarta text-sm font-medium rounded-sm border transition-all duration-200"
-                        style={{ borderColor: 'var(--color-gray-light)', color: 'var(--color-charcoal)' }}
+                        className="w-9 h-9 font-ui text-xs font-semibold border transition-all duration-200"
+                        style={{ borderColor: 'rgba(26,26,26,0.15)', color: 'var(--color-charcoal)', borderRadius: '2px' }}
                     >
                         {total}
                     </button>
@@ -419,8 +445,8 @@ function Pagination({ current, total, onChange }) {
             <button
                 onClick={() => onChange(current + 1)}
                 disabled={current === total}
-                className="w-9 h-9 flex items-center justify-center rounded-sm border transition-all duration-200 disabled:opacity-30"
-                style={{ borderColor: 'var(--color-gray-light)', color: 'var(--color-charcoal)' }}
+                className="w-9 h-9 flex items-center justify-center border transition-all duration-200 disabled:opacity-30"
+                style={{ borderColor: 'rgba(26,26,26,0.15)', color: 'var(--color-charcoal)', borderRadius: '2px' }}
                 aria-label="Next page"
             >
                 <ChevronRight size={14} />
@@ -497,10 +523,13 @@ export default function ArchivePage() {
         });
     }, [articles, publication, year, search]);
 
-    // Reset to page 1 on filter change
-    useEffect(() => {
+    // Reset to page 1 when filters change — computed inline to avoid setState-in-effect
+    const filterKey = `${publication}||${year}||${search}`;
+    const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+    if (filterKey !== prevFilterKey) {
+        setPrevFilterKey(filterKey);
         setCurrentPage(1);
-    }, [publication, year, search]);
+    }
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
     const paginated = filtered.slice(
@@ -518,7 +547,7 @@ export default function ArchivePage() {
     }
 
     return (
-        <div className="min-h-[100dvh] flex flex-col" style={{ backgroundColor: 'var(--color-white)' }}>
+        <div className="min-h-[100dvh] flex flex-col" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
             <Navbar />
 
             <main className="flex-1 pt-24 pb-24">
@@ -527,35 +556,43 @@ export default function ArchivePage() {
                     ref={headerRef}
                     className="max-w-[1400px] mx-auto px-6 md:px-10 mb-14 relative"
                 >
-                    {/* Decorative periwinkle stripe */}
+                    {/* Gold left accent bar */}
                     <div
-                        className="absolute -left-2 top-2 w-40 h-20 pointer-events-none -z-10 rounded-sm"
-                        style={{ backgroundColor: 'var(--color-periwinkle)', opacity: 0.18 }}
+                        className="absolute -left-0 top-0 w-[3px] h-full pointer-events-none"
+                        style={{ backgroundColor: 'var(--color-gold)', opacity: 0.5 }}
                         aria-hidden="true"
                     />
 
-                    <p
-                        className="archive-reveal font-jakarta text-[10px] uppercase tracking-[0.28em] font-semibold mb-4 pl-px"
-                        style={{ color: 'var(--color-gray-mid)', opacity: 0 }}
-                    >
-                        Selected Work
-                    </p>
+                    <div className="flex items-center gap-3 mb-5 pl-px">
+                        <span
+                            className="inline-block w-6 h-px"
+                            style={{ backgroundColor: 'var(--color-gold)' }}
+                            aria-hidden="true"
+                        />
+                        <p
+                            className="archive-reveal font-ui uppercase"
+                            style={{ fontSize: '0.6rem', letterSpacing: '0.28em', fontWeight: 600, color: 'var(--color-gold)', opacity: 0 }}
+                        >
+                            Selected Work
+                        </p>
+                    </div>
 
                     <h1
-                        className="archive-reveal font-cormorant font-medium leading-tight mb-5"
+                        className="archive-reveal font-serif font-bold leading-tight mb-5"
                         style={{
                             fontSize: 'clamp(3.5rem, 9vw, 7.5rem)',
-                            color: 'var(--color-violet)',
+                            color: 'var(--color-charcoal)',
+                            letterSpacing: '-0.03em',
                             opacity: 0,
                         }}
                     >
-                        The Full{' '}
-                        <span className="italic font-light">Archive</span>
+                        The full{' '}
+                        <span className="italic font-normal">archive</span>
                     </h1>
 
                     <p
-                        className="archive-reveal font-jakarta text-base leading-relaxed max-w-xl"
-                        style={{ color: 'var(--color-gray-mid)', opacity: 0 }}
+                        className="archive-reveal font-sans text-base leading-relaxed max-w-xl"
+                        style={{ color: 'var(--color-text-secondary)', fontWeight: 300, opacity: 0 }}
                     >
                         A comprehensive collection of interviews, reviews, and cultural commentary spanning years of entertainment journalism.
                     </p>
@@ -567,10 +604,10 @@ export default function ArchivePage() {
                     aria-label="Filter articles"
                 >
                     <div
-                        className="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between p-4 rounded-sm"
+                        className="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between p-4"
                         style={{
-                            backgroundColor: '#FAFAFE',
-                            border: '1px solid var(--color-gray-light)',
+                            backgroundColor: 'var(--color-bg-secondary)',
+                            border: '1px solid rgba(26,26,26,0.1)',
                         }}
                     >
                         {/* Left: dropdowns */}
@@ -590,8 +627,8 @@ export default function ArchivePage() {
                             {hasActiveFilters && (
                                 <button
                                     onClick={clearFilters}
-                                    className="flex items-center gap-1 font-jakarta text-xs font-medium px-3 py-2 rounded-sm transition-all duration-200 hover:opacity-80"
-                                    style={{ color: 'var(--color-violet)' }}
+                                    className="flex items-center gap-1 font-ui uppercase transition-all duration-200 hover:opacity-70"
+                                    style={{ fontSize: '0.6rem', letterSpacing: '0.08em', fontWeight: 600, color: 'var(--color-gold)' }}
                                     aria-label="Clear all filters"
                                 >
                                     <X size={10} />
@@ -613,10 +650,13 @@ export default function ArchivePage() {
                                 placeholder="Search articles…"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full font-jakarta text-sm pl-9 pr-4 py-2.5 rounded-sm border bg-white transition-all duration-200 focus:outline-none focus:ring-2"
+                                className="w-full font-sans text-sm pl-9 pr-4 py-2.5 transition-all duration-200 focus:outline-none"
                                 style={{
-                                    borderColor: search ? 'var(--color-violet)' : 'var(--color-gray-light)',
+                                    border: '1px solid',
+                                    borderRadius: '2px',
+                                    borderColor: search ? 'var(--color-gold)' : 'rgba(26,26,26,0.15)',
                                     color: 'var(--color-charcoal)',
+                                    backgroundColor: 'var(--color-bg-secondary)',
                                 }}
                                 aria-label="Search articles"
                             />
@@ -625,8 +665,8 @@ export default function ArchivePage() {
 
                     {/* Results count */}
                     <p
-                        className="font-jakarta text-xs mt-3 pl-0.5"
-                        style={{ color: 'var(--color-gray-mid)' }}
+                        className="font-sans mt-3 pl-0.5"
+                        style={{ fontSize: '0.72rem', color: 'var(--color-text-secondary)', fontWeight: 300 }}
                     >
                         {filtered.length} {filtered.length === 1 ? 'article' : 'articles'}
                         {hasActiveFilters ? ' matching your filters' : ' total'}
@@ -663,25 +703,27 @@ export default function ArchivePage() {
                         <div className="flex flex-col items-center justify-center py-32 text-center">
                             <div
                                 className="w-16 h-px mb-8 mx-auto"
-                                style={{ backgroundColor: 'var(--color-periwinkle)' }}
+                                style={{ backgroundColor: 'var(--color-gold)', opacity: 0.5 }}
                                 aria-hidden="true"
                             />
                             <p
-                                className="font-cormorant font-light italic mb-3"
-                                style={{ fontSize: 'clamp(1.75rem, 4vw, 2.75rem)', color: 'var(--color-violet)' }}
+                                className="font-serif font-normal italic mb-3"
+                                style={{ fontSize: 'clamp(1.75rem, 4vw, 2.75rem)', color: 'var(--color-charcoal)' }}
                             >
                                 No articles found.
                             </p>
                             <p
-                                className="font-jakarta text-sm mb-8 max-w-sm leading-relaxed"
-                                style={{ color: 'var(--color-gray-mid)' }}
+                                className="font-sans text-sm mb-8 max-w-sm leading-relaxed"
+                                style={{ color: 'var(--color-text-secondary)', fontWeight: 300 }}
                             >
                                 Try adjusting your filters or clearing your search to see more.
                             </p>
                             <button
                                 onClick={clearFilters}
-                                className="font-jakarta text-xs font-semibold uppercase tracking-widest px-5 py-2.5 rounded-sm border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                                style={{ borderColor: 'var(--color-violet)', color: 'var(--color-violet)' }}
+                                className="font-ui uppercase px-5 py-2.5 border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                                style={{ fontSize: '0.7rem', letterSpacing: '0.1em', fontWeight: 600, borderColor: 'var(--color-charcoal)', color: 'var(--color-charcoal)', borderRadius: '2px' }}
+                                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-gold)'; e.currentTarget.style.borderColor = 'var(--color-gold)'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderColor = 'var(--color-charcoal)'; }}
                             >
                                 Clear all filters
                             </button>

@@ -1,7 +1,9 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
-import { ArrowRight, Linkedin, Twitter, Instagram, Mail } from 'lucide-react';
+import { ArrowRight, X, Mail } from 'lucide-react';
+import { SiLinkedin, SiInstagram } from 'react-icons/si';
 import { useSiteSettings } from '../../hooks/useDirectus';
 
 // ─── Fallback content ──────────────────────────────────────────────────────────
@@ -16,15 +18,17 @@ const FALLBACK = {
   isAvailable: true,
 };
 
-// ─── Icon map — Lucide component per CMS social key ───────────────────────────
-
-const SOCIAL_ICON_MAP = {
-  linkedin: Linkedin,
-  twitter: Twitter,
-  instagram: Instagram,
-};
 
 // Magnetic button — uses Framer Motion useMotionValue outside render cycle
+MagneticButton.propTypes = {
+  children: PropTypes.node.isRequired,
+  href: PropTypes.string,
+  to: PropTypes.string,
+  outline: PropTypes.bool,
+  className: PropTypes.string,
+  style: PropTypes.object,
+};
+
 function MagneticButton({ children, href, to, outline, className, style }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -48,7 +52,7 @@ function MagneticButton({ children, href, to, outline, className, style }) {
     onMouseMove: handleMouseMove,
     onMouseLeave: handleMouseLeave,
     style: { x: springX, y: springY, ...style },
-    className: `group relative inline-flex items-center gap-2 font-jakarta text-sm font-semibold uppercase tracking-widest px-8 py-4 rounded-sm overflow-hidden transition-all duration-300 ${className}`,
+    className: `group relative inline-flex items-center gap-2 font-ui text-xs font-semibold uppercase tracking-[0.08em] px-8 py-4 overflow-hidden transition-all duration-300 ${className}`,
     whileTap: { scale: 0.97 },
   };
 
@@ -57,7 +61,7 @@ function MagneticButton({ children, href, to, outline, className, style }) {
       {/* Sliding background fill */}
       <span
         className="absolute inset-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-spring-bounce"
-        style={{ backgroundColor: outline ? 'var(--color-violet)' : 'rgba(255,255,255,0.12)' }}
+        style={{ backgroundColor: outline ? 'rgba(248,245,240,0.12)' : 'rgba(255,255,255,0.12)' }}
         aria-hidden="true"
       />
       <span className="relative z-10 flex items-center gap-2">{children}</span>
@@ -71,7 +75,7 @@ function MagneticButton({ children, href, to, outline, className, style }) {
           to={to}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
-          className={`group relative inline-flex items-center gap-2 font-jakarta text-sm font-semibold uppercase tracking-widest px-8 py-4 rounded-sm overflow-hidden transition-all duration-300 ${className ?? ''}`}
+          className={`group relative inline-flex items-center gap-2 font-ui text-xs font-semibold uppercase tracking-[0.08em] px-8 py-4 overflow-hidden transition-all duration-300 ${className ?? ''}`}
           style={style}
         >
           {inner}
@@ -112,19 +116,19 @@ export default function Footer() {
       key: 'linkedin',
       label: 'LinkedIn',
       href: settings?.social_linkedin || FALLBACK.linkedin,
-      icon: Linkedin,
+      icon: SiLinkedin,
     },
     {
       key: 'twitter',
       label: 'Twitter / X',
       href: settings?.social_twitter || FALLBACK.twitter,
-      icon: Twitter,
+      icon: X,
     },
     {
       key: 'instagram',
       label: 'Instagram',
       href: settings?.social_instagram || FALLBACK.instagram,
-      icon: Instagram,
+      icon: SiInstagram,
     },
     {
       key: 'mail',
@@ -138,45 +142,60 @@ export default function Footer() {
     <footer
       id="contact"
       className="relative"
-      style={{ backgroundColor: 'var(--color-charcoal)' }}
+      style={{ backgroundColor: '#111009' }}
       aria-label="Footer and Contact"
     >
-      {/* Rounded top — editorial device */}
+      {/* Dotted grid overlay */}
       <div
-        className="absolute -top-px left-0 right-0 h-16 pointer-events-none"
+        className="absolute inset-0 pointer-events-none"
+        aria-hidden="true"
         style={{
-          backgroundColor: 'var(--color-charcoal)',
-          borderRadius: '4rem 4rem 0 0',
+          backgroundImage: 'radial-gradient(circle, rgba(223,189,56,0.08) 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
         }}
+      />
+
+      {/* Gold left accent bar */}
+      <div
+        className="absolute top-0 left-0 w-[3px] h-full pointer-events-none"
+        style={{ backgroundColor: 'var(--color-gold)', opacity: 0.5 }}
         aria-hidden="true"
       />
 
       {/* CTA Section */}
       <div
         className="relative pt-24 pb-16 px-6 md:px-10 max-w-[1400px] mx-auto"
-        style={{ borderBottom: '1px solid rgba(195,192,216,0.15)' }}
+        style={{ borderBottom: '1px solid rgba(223,189,56,0.12)' }}
       >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-end">
           <div>
-            {/* Availability label — CMS-driven */}
-            <span
-              className="font-jakarta text-xs uppercase tracking-[0.3em] font-semibold block mb-5"
-              style={{ color: 'rgba(195,192,216,0.6)' }}
-            >
-              — {availabilityText}
-            </span>
+            {/* Availability label */}
+            <div className="flex items-center gap-3 mb-6">
+              <span
+                className="inline-block w-6 h-px"
+                style={{ backgroundColor: 'var(--color-gold)', opacity: 0.5 }}
+                aria-hidden="true"
+              />
+              <span
+                className="font-ui uppercase"
+                style={{ fontSize: '0.6rem', letterSpacing: '0.3em', fontWeight: 600, color: 'var(--color-gold)', opacity: 0.6 }}
+              >
+                {availabilityText}
+              </span>
+            </div>
             <h2
-              className="font-cormorant font-bold leading-tight"
+              className="font-serif font-bold leading-tight"
               style={{
                 fontSize: 'clamp(2.5rem, 6vw, 5rem)',
-                color: '#FFFFFF',
+                color: '#F8F5F0',
+                letterSpacing: '-0.02em',
               }}
             >
               Let&rsquo;s build the
               <br />
               <span
-                className="italic font-light"
-                style={{ color: 'var(--color-periwinkle)' }}
+                className="italic font-normal"
+                style={{ color: 'var(--color-gold)' }}
               >
                 story together.
               </span>
@@ -184,33 +203,30 @@ export default function Footer() {
           </div>
 
           <div className="flex flex-col gap-5 items-start lg:items-end">
-            {/* Contact description — from CMS */}
             <p
-              className="font-jakarta text-sm leading-relaxed max-w-[40ch] lg:text-right"
-              style={{ color: 'rgba(255,255,255,0.5)' }}
+              className="font-sans text-sm leading-relaxed max-w-[40ch] lg:text-right"
+              style={{ color: 'rgba(248,245,240,0.42)', fontWeight: 300 }}
             >
               {contactDesc}
             </p>
             <div className="flex flex-wrap gap-4">
-              {/* Primary CTA — solid white, email from CMS */}
               <MagneticButton
                 to="/book"
-                style={{ backgroundColor: '#fff', color: 'var(--color-charcoal)' }}
+                style={{ backgroundColor: 'var(--color-gold)', color: 'var(--color-charcoal)' }}
               >
-                Start a Project
+                Start a project
                 <ArrowRight size={13} />
               </MagneticButton>
 
-              {/* Secondary CTA — outline */}
               <MagneticButton
                 href="#work"
                 outline
                 style={{
-                  border: '1px solid rgba(195,192,216,0.5)',
-                  color: 'var(--color-periwinkle)',
+                  border: '1px solid rgba(248,245,240,0.2)',
+                  color: 'rgba(248,245,240,0.7)',
                 }}
               >
-                View Portfolio
+                View portfolio
               </MagneticButton>
             </div>
           </div>
@@ -218,19 +234,19 @@ export default function Footer() {
       </div>
 
       {/* Footer base */}
-      <div className="px-6 md:px-10 max-w-[1400px] mx-auto pt-10 pb-12">
+      <div className="relative px-6 md:px-10 max-w-[1400px] mx-auto pt-10 pb-12">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
           {/* Logo */}
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1.5">
             <span
-              className="font-cormorant font-bold italic text-2xl leading-none"
-              style={{ color: 'var(--color-periwinkle)' }}
+              className="font-serif font-bold italic text-2xl leading-none"
+              style={{ color: 'var(--color-gold)', opacity: 0.85 }}
             >
               Hannah Abraham
             </span>
             <span
-              className="font-jakarta text-[10px] uppercase tracking-[0.25em]"
-              style={{ color: 'rgba(255,255,255,0.3)' }}
+              className="font-ui uppercase"
+              style={{ fontSize: '0.6rem', letterSpacing: '0.25em', fontWeight: 600, color: 'rgba(248,245,240,0.3)' }}
             >
               Entertainment Journalist
             </span>
@@ -244,20 +260,20 @@ export default function Footer() {
                   {item.isAnchor ? (
                     <a
                       href={item.href}
-                      className="font-jakarta text-xs uppercase tracking-widest font-medium transition-colors duration-200"
-                      style={{ color: 'rgba(255,255,255,0.45)' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-periwinkle)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
+                      className="font-ui uppercase transition-colors duration-200"
+                      style={{ fontSize: '0.6rem', letterSpacing: '0.1em', fontWeight: 600, color: 'rgba(248,245,240,0.38)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-gold)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(248,245,240,0.38)')}
                     >
                       {item.label}
                     </a>
                   ) : (
                     <Link
                       to={item.href}
-                      className="font-jakarta text-xs uppercase tracking-widest font-medium transition-colors duration-200"
-                      style={{ color: 'rgba(255,255,255,0.45)' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-periwinkle)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
+                      className="font-ui uppercase transition-colors duration-200"
+                      style={{ fontSize: '0.6rem', letterSpacing: '0.1em', fontWeight: 600, color: 'rgba(248,245,240,0.38)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-gold)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(248,245,240,0.38)')}
                     >
                       {item.label}
                     </Link>
@@ -267,27 +283,28 @@ export default function Footer() {
             </ul>
           </nav>
 
-          {/* Social icons — from CMS */}
-          <div className="flex items-center gap-3">
+          {/* Social icons */}
+          <div className="flex items-center gap-2.5">
             {socialLinks.map(({ key, icon: Icon, href, label }) => (
               <a
                 key={key}
                 href={href}
                 target={href.startsWith('http') ? '_blank' : undefined}
                 rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                className="w-8 h-8 flex items-center justify-center rounded-sm border transition-all duration-200"
+                className="w-8 h-8 flex items-center justify-center border transition-all duration-200"
                 style={{
-                  borderColor: 'rgba(195,192,216,0.25)',
-                  color: 'rgba(255,255,255,0.5)',
+                  borderColor: 'rgba(248,245,240,0.15)',
+                  color: 'rgba(248,245,240,0.45)',
+                  borderRadius: '2px',
                 }}
                 aria-label={label}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--color-periwinkle)';
-                  e.currentTarget.style.color = 'var(--color-periwinkle)';
+                  e.currentTarget.style.borderColor = 'var(--color-gold)';
+                  e.currentTarget.style.color = 'var(--color-gold)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(195,192,216,0.25)';
-                  e.currentTarget.style.color = 'rgba(255,255,255,0.5)';
+                  e.currentTarget.style.borderColor = 'rgba(248,245,240,0.15)';
+                  e.currentTarget.style.color = 'rgba(248,245,240,0.45)';
                 }}
               >
                 <Icon size={13} />
@@ -299,17 +316,17 @@ export default function Footer() {
         {/* Copyright */}
         <div
           className="mt-10 pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-          style={{ borderTop: '1px solid rgba(195,192,216,0.1)' }}
+          style={{ borderTop: '1px solid rgba(223,189,56,0.1)' }}
         >
           <p
-            className="font-jakarta text-[11px]"
-            style={{ color: 'rgba(255,255,255,0.25)' }}
+            className="font-sans"
+            style={{ fontSize: '0.7rem', color: 'rgba(248,245,240,0.2)', fontWeight: 400 }}
           >
             &copy; {new Date().getFullYear()} Hannah Abraham. All rights reserved.
           </p>
           <p
-            className="font-jakarta text-[11px]"
-            style={{ color: 'rgba(255,255,255,0.18)' }}
+            className="font-sans"
+            style={{ fontSize: '0.7rem', color: 'rgba(248,245,240,0.15)', fontWeight: 400 }}
           >
             Entertainment Journalist · Film · Culture · Criticism
           </p>

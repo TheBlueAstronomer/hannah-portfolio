@@ -1,0 +1,44 @@
+{
+  "brand_identity": {
+    "theme_name": "Modern Editorial",
+    "overall_vibe": "Print-magazine inspired, journalistic, warm, and highly professional. It relies on high-contrast, classic serif typography paired with a signature mustard-gold accent and subtle dotted grid patterns to evoke a modern editor's desk.",
+    "colors": {
+      "background_primary": "#F8F5F0",
+      "background_secondary": "#FFFFFF",
+      "text_primary": "#1A1A1A",
+      "text_secondary": "#595959",
+      "accent_gold": "#DFBD38",
+      "accent_red": "#DE7B6C",
+      "pattern_dot_grid": "#E0E0E0",
+      "borders_and_lines": "#1A1A1A"
+    },
+    "typography": {
+      "headings": {
+        "font_family": "'Playfair Display', 'Bodoni MT', 'Georgia', serif",
+        "usage": "Article titles, hero names, large pull quotes",
+        "weights": [400, 600, 700],
+        "character": "Elegant, high-contrast, classic"
+      },
+      "body_copy": {
+        "font_family": "'Inter', 'Helvetica Neue', Arial, sans-serif",
+        "usage": "Paragraphs, article excerpts, general descriptions",
+        "weights": [300, 400],
+        "character": "Clean, neutral, highly legible"
+      },
+      "tags_and_ui": {
+        "font_family": "'Montserrat', sans-serif",
+        "usage": "Category tags (e.g., 'INTERVIEW', 'FASHION'), navigation links, buttons",
+        "weights": [500, 600],
+        "text_transform": "uppercase",
+        "letter_spacing": "0.1em",
+        "character": "Structured, bold, modern"
+      }
+    },
+    "visual_motifs": {
+      "backgrounds": "Subtle, light-grey dotted grid patterns (like a halftone print) used behind text or as section dividers, exactly like the Instagram tiles.",
+      "dividers": "Thin, crisp black lines (1px) used to separate columns and sections, mimicking magazine layouts.",
+      "photography": "Warm, natural color grading matching the profile picture. No heavy filters, keeping it authentic and professional.",
+      "accent_shapes": "Solid rectangular blocks behind category tags (gold and red), slightly offset from the text for a 'stamped' editorial look."
+    }
+  }
+}

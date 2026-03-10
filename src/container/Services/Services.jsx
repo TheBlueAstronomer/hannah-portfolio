@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -41,6 +42,15 @@ const SERVICES = [
 ];
 
 // ─── Individual service row ────────────────────────────────────────────────────
+ServiceRow.propTypes = {
+    service: PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        title: PropTypes.string.isRequired,
+        description: PropTypes.string.isRequired,
+    }).isRequired,
+    rowRef: PropTypes.func.isRequired,
+};
+
 function ServiceRow({ service, rowRef }) {
     return (
         <div

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Linkedin, Twitter, Instagram, BookOpen } from 'lucide-react';
+import { X, BookOpen } from 'lucide-react';
+import { SiLinkedin, SiInstagram } from 'react-icons/si';
 
 const NAV_LINKS = [
   { label: 'Work', href: '#work', isAnchor: true },
@@ -28,34 +29,40 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${scrolled || isArchive
-        ? 'bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-[0_2px_20px_rgba(88,75,119,0.06)]'
-        : 'bg-transparent border-b border-transparent'
-        }`}
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
+        scrolled || isArchive
+          ? 'border-b'
+          : 'border-b border-transparent'
+      }`}
+      style={
+        scrolled || isArchive
+          ? { backgroundColor: 'rgba(248,245,240,0.92)', backdropFilter: 'blur(12px)', borderColor: 'rgba(26,26,26,0.14)' }
+          : {}
+      }
       aria-label="Main navigation"
     >
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
         {/* Logo / Wordmark */}
         <Link
           to="/"
-          className="flex items-center gap-2 group"
+          className="flex items-center gap-2.5 group"
           aria-label="Hannah Abraham — Home"
         >
           <span
-            className="font-cormorant font-bold italic text-2xl leading-none tracking-tight transition-colors duration-300"
-            style={{ color: 'var(--color-violet)' }}
+            className="font-serif font-bold italic text-2xl leading-none tracking-tight transition-colors duration-300"
+            style={{ color: 'var(--color-charcoal)' }}
           >
             Hannah
           </span>
           <span
-            className="hidden sm:block font-jakarta text-xs uppercase tracking-[0.22em] font-medium mt-px transition-colors duration-300"
-            style={{ color: 'var(--color-charcoal)' }}
+            className="hidden sm:block font-ui text-[10px] uppercase tracking-[0.22em] font-semibold mt-px transition-colors duration-300"
+            style={{ color: 'var(--color-charcoal)', opacity: 0.55 }}
           >
             Abraham
           </span>
           <span
-            className="hidden sm:block font-jakarta text-xs uppercase tracking-[0.22em] font-medium mt-px transition-colors duration-300 ml-1 opacity-40"
-            style={{ color: 'var(--color-charcoal)' }}
+            className="hidden lg:block font-ui text-[10px] uppercase tracking-[0.22em] font-medium mt-px transition-colors duration-300 ml-0.5"
+            style={{ color: 'var(--color-charcoal)', opacity: 0.3 }}
           >
             / Entertainment Journalist
           </span>
@@ -70,26 +77,26 @@ export default function Navbar() {
                 {item.isAnchor ? (
                   <a
                     href={isArchive ? `/${item.href}` : item.href}
-                    className="relative font-jakarta text-sm font-medium px-4 py-2 rounded-sm transition-colors duration-300 group"
+                    className="relative font-ui text-[11px] font-semibold uppercase tracking-[0.1em] px-4 py-2 transition-colors duration-200 group"
                     style={{ color: 'var(--color-charcoal)' }}
                   >
                     {item.label}
                     <span
                       className="absolute bottom-1 left-4 right-4 h-px scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"
-                      style={{ backgroundColor: 'var(--color-periwinkle)' }}
+                      style={{ backgroundColor: 'var(--color-gold)' }}
                     />
                   </a>
                 ) : (
                   <Link
                     to={item.href}
-                    className="relative font-jakarta text-sm font-medium px-4 py-2 rounded-sm transition-colors duration-300 group"
-                    style={{ color: active ? 'var(--color-violet)' : 'var(--color-charcoal)' }}
+                    className="relative font-ui text-[11px] font-semibold uppercase tracking-[0.1em] px-4 py-2 transition-colors duration-200 group"
+                    style={{ color: active ? 'var(--color-gold)' : 'var(--color-charcoal)' }}
                   >
                     {item.label}
                     <span
                       className="absolute bottom-1 left-4 right-4 h-px transition-transform duration-300 origin-left"
                       style={{
-                        backgroundColor: 'var(--color-periwinkle)',
+                        backgroundColor: 'var(--color-gold)',
                         transform: active ? 'scaleX(1)' : 'scaleX(0)',
                       }}
                     />
@@ -101,59 +108,62 @@ export default function Navbar() {
         </ul>
 
         {/* Right: Social + CTA */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2.5">
           <a
             href="https://www.linkedin.com/in/hannahrachelabraham/"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-8 h-8 flex items-center justify-center rounded-sm transition-colors duration-200 hover:bg-periwinkle/20"
+            className="w-8 h-8 flex items-center justify-center transition-colors duration-200 rounded-sm hover:bg-black/5"
             aria-label="LinkedIn"
           >
-            <Linkedin size={15} style={{ color: 'var(--color-violet)' }} />
+            <SiLinkedin size={14} style={{ color: 'var(--color-charcoal)', opacity: 0.6 }} />
           </a>
           <a
             href="https://twitter.com/HAN_NA_NA_NAH"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-8 h-8 flex items-center justify-center rounded-sm transition-colors duration-200 hover:bg-periwinkle/20"
-            aria-label="Twitter"
+            className="w-8 h-8 flex items-center justify-center transition-colors duration-200 rounded-sm hover:bg-black/5"
+            aria-label="X (Twitter)"
           >
-            <Twitter size={15} style={{ color: 'var(--color-violet)' }} />
+            <X size={14} style={{ color: 'var(--color-charcoal)', opacity: 0.6 }} />
           </a>
           <a
             href="https://www.instagram.com/han_na_na_nah/"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-8 h-8 flex items-center justify-center rounded-sm transition-colors duration-200 hover:bg-periwinkle/20"
+            className="w-8 h-8 flex items-center justify-center transition-colors duration-200 rounded-sm hover:bg-black/5"
             aria-label="Instagram"
           >
-            <Instagram size={15} style={{ color: 'var(--color-violet)' }} />
+            <SiInstagram size={14} style={{ color: 'var(--color-charcoal)', opacity: 0.6 }} />
           </a>
-          <div className="w-px h-4 mx-1 bg-gray-300" aria-hidden="true" />
+          <div className="w-px h-4 mx-1" style={{ backgroundColor: 'rgba(26,26,26,0.15)' }} aria-hidden="true" />
           <Link
             to="/book"
-            className="flex items-center gap-1.5 font-jakarta text-xs font-semibold uppercase tracking-widest px-4 py-2 rounded-sm border transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+            className="flex items-center gap-1.5 font-ui text-[10px] font-semibold uppercase tracking-[0.1em] px-4 py-2 border transition-all duration-250 hover:scale-[1.02] active:scale-[0.98]"
             style={{
-              borderColor: 'var(--color-violet)',
-              color: 'var(--color-violet)',
+              borderColor: 'var(--color-charcoal)',
+              color: 'var(--color-charcoal)',
+              borderRadius: '2px',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-violet)';
-              e.currentTarget.style.color = '#fff';
+              e.currentTarget.style.backgroundColor = 'var(--color-gold)';
+              e.currentTarget.style.borderColor = 'var(--color-gold)';
+              e.currentTarget.style.color = 'var(--color-charcoal)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = 'var(--color-violet)';
+              e.currentTarget.style.borderColor = 'var(--color-charcoal)';
+              e.currentTarget.style.color = 'var(--color-charcoal)';
             }}
           >
-            <BookOpen size={12} />
+            <BookOpen size={11} />
             Hire Me
           </Link>
         </div>
 
         {/* Mobile Hamburger */}
         <button
-          className="md:hidden flex flex-col gap-[5px] p-2 rounded-sm group"
+          className="md:hidden flex flex-col gap-[5px] p-2"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={mobileOpen}
@@ -175,20 +185,22 @@ export default function Navbar() {
 
       {/* Mobile Drawer */}
       <div
-        className={`md:hidden fixed inset-0 top-16 bg-white z-[99] transition-all duration-500 flex flex-col px-6 pt-8 pb-12 gap-6 ${mobileOpen ? 'opacity-100 pointer-events-auto translate-x-0' : 'opacity-0 pointer-events-none translate-x-full'
-          }`}
+        className={`md:hidden fixed inset-0 top-16 z-[99] transition-all duration-500 flex flex-col px-6 pt-8 pb-12 gap-6 ${
+          mobileOpen ? 'opacity-100 pointer-events-auto translate-x-0' : 'opacity-0 pointer-events-none translate-x-full'
+        }`}
+        style={{ backgroundColor: 'var(--color-bg-primary)' }}
       >
-        <ul className="flex flex-col gap-2" role="list">
+        <ul className="flex flex-col gap-0" role="list">
           {NAV_LINKS.map((item) => (
             <li key={item.label}>
               {item.isAnchor ? (
                 <a
                   href={isArchive ? `/${item.href}` : item.href}
                   onClick={() => setMobileOpen(false)}
-                  className="block font-jakarta text-2xl font-semibold py-3 border-b transition-colors duration-200"
+                  className="block font-serif text-3xl font-bold py-4 border-b transition-colors duration-200"
                   style={{
                     color: 'var(--color-charcoal)',
-                    borderColor: 'var(--color-gray-light)',
+                    borderColor: 'rgba(26,26,26,0.1)',
                   }}
                 >
                   {item.label}
@@ -197,10 +209,10 @@ export default function Navbar() {
                 <Link
                   to={item.href}
                   onClick={() => setMobileOpen(false)}
-                  className="block font-jakarta text-2xl font-semibold py-3 border-b transition-colors duration-200"
+                  className="block font-serif text-3xl font-bold py-4 border-b transition-colors duration-200"
                   style={{
-                    color: isActive(item) ? 'var(--color-violet)' : 'var(--color-charcoal)',
-                    borderColor: 'var(--color-gray-light)',
+                    color: isActive(item) ? 'var(--color-gold)' : 'var(--color-charcoal)',
+                    borderColor: 'rgba(26,26,26,0.1)',
                   }}
                 >
                   {item.label}
@@ -211,13 +223,13 @@ export default function Navbar() {
         </ul>
         <div className="flex gap-4 mt-4">
           <a href="https://www.linkedin.com/in/hannahrachelabraham/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-            <Linkedin size={20} style={{ color: 'var(--color-violet)' }} />
+            <SiLinkedin size={20} style={{ color: 'var(--color-charcoal)', opacity: 0.65 }} />
           </a>
-          <a href="https://twitter.com/HAN_NA_NA_NAH" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
-            <Twitter size={20} style={{ color: 'var(--color-violet)' }} />
+          <a href="https://twitter.com/HAN_NA_NA_NAH" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
+            <X size={20} style={{ color: 'var(--color-charcoal)', opacity: 0.65 }} />
           </a>
           <a href="https://www.instagram.com/han_na_na_nah/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-            <Instagram size={20} style={{ color: 'var(--color-violet)' }} />
+            <SiInstagram size={20} style={{ color: 'var(--color-charcoal)', opacity: 0.65 }} />
           </a>
         </div>
       </div>

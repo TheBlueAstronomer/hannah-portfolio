@@ -65,12 +65,11 @@ const SETTINGS_FIELDS = [
 
 export function useSiteSettings() {
     const [settings, setSettings] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true); // true by default — no setState needed in effect
     const [error, setError] = useState(null);
 
     useEffect(() => {
         let cancelled = false;
-        setLoading(true);
 
         directus
             .request(readSingleton('site_settings', { fields: SETTINGS_FIELDS }))
