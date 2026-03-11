@@ -48,6 +48,11 @@ steps:
           gcloud auth configure-docker asia-south1-docker.pkg.dev --quiet && \
           docker-compose -f docker-compose.prod.yml pull && \
           docker-compose -f docker-compose.prod.yml up -d'"
+
+        # Remove stale ephemeral root keys injected by Cloud Build containers to prevent login profile size accumulation
+        current_keys=$(gcloud compute project-info describe --project=$PROJECT_ID --format="value(commonInstanceMetadata.items['ssh-keys'])")
+        echo "$current_keys" | grep -v "^root:" > /tmp/ssh_keys_cleaned.txt
+        gcloud compute project-info add-metadata --project=$PROJECT_ID --metadata-from-file=ssh-keys=/tmp/ssh_keys_cleaned.txt
     id: 'deploy-vm'
 
 images:
