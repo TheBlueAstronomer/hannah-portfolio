@@ -7,17 +7,21 @@ export default {
     theme: {
         extend: {
             colors: {
-                periwinkle: '#C3C0D8',
-                violet: '#584B77',
+                cream: '#F8F5F0',
+                'cream-white': '#FFFFFF',
                 charcoal: '#1A1A1A',
                 'charcoal-light': '#2A2A2A',
+                'text-secondary': '#595959',
+                gold: '#DFBD38',
+                coral: '#DE7B6C',
+                'dot-grid': '#E0E0E0',
             },
             fontFamily: {
-                sans: ['"Plus Jakarta Sans"', 'Outfit', 'sans-serif'],
-                serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
-                outfit: ['Outfit', 'sans-serif'],
-                jakarta: ['"Plus Jakarta Sans"', 'sans-serif'],
-                cormorant: ['"Cormorant Garamond"', 'serif'],
+                sans: ['Inter', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                serif: ['"Playfair Display"', 'Bodoni MT', 'Georgia', 'serif'],
+                display: ['"Playfair Display"', 'Georgia', 'serif'],
+                ui: ['Montserrat', 'sans-serif'],
+                inter: ['Inter', 'sans-serif'],
             },
             transitionTimingFunction: {
                 'spring-bounce': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
@@ -29,7 +33,7 @@ export default {
                 '6xl': '4rem',
             },
             backgroundImage: {
-                'hex-pattern': "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66zM28 100L0 84V68l28 16 28-16v16L28 100z' fill='none' stroke='%23584B77' stroke-width='0.5' opacity='0.05'/%3E%3C/svg%3E\")",
+                'dot-grid': "radial-gradient(circle, #E0E0E0 1px, transparent 1px)",
             },
         },
     },

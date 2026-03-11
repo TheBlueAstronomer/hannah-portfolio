@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { gsap } from 'gsap';
 import { ExternalLink, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -42,8 +43,9 @@ const PLACEHOLDER_COVERS = [
     headline: 'BAFTA-Winning Director Lakshmipriya Devi On \'Boong\': \'Everyone Told Me Not To Make It\'',
     publication: 'Forbes',
     date: 'Feb 28, 2026',
-    color: '#C3C0D8',
-    accent: '#584B77',
+    color: '#F8F5F0',
+    accent: '#1A1A1A',
+    tagType: 'gold',
     img: 'https://picsum.photos/seed/boong-bafta-director/400/520',
     url: 'https://www.forbes.com/sites/hannahabraham/2026/02/28/bafta-winning-director-lakshmipriya-devi-on-boong-everyone-told-me-not-to-make-it/',
   },
@@ -53,8 +55,9 @@ const PLACEHOLDER_COVERS = [
     headline: '\'Mufasa\' Songwriter Lin-Manuel Miranda On Working With Barry Jenkins & Why The \'Hamilton\' Parallel Is A Myth',
     publication: 'Deadline',
     date: 'Dec 2024',
-    color: '#E8E4F0',
-    accent: '#3D3460',
+    color: '#FFFFFF',
+    accent: '#1A1A1A',
+    tagType: 'coral',
     img: 'https://picsum.photos/seed/lin-manuel-miranda-mufasa/400/520',
     url: 'https://deadline.com/feature/mufasa-the-lion-king-lin-manuel-miranda-interview-1236242723/',
   },
@@ -64,8 +67,9 @@ const PLACEHOLDER_COVERS = [
     headline: 'The Very Beginning Of Outstation: Inside India\'s Most Ambitious Boyband',
     publication: 'Forbes',
     date: 'Feb 27, 2026',
-    color: '#F4F0FA',
-    accent: '#584B77',
+    color: '#F8F5F0',
+    accent: '#1A1A1A',
+    tagType: 'gold',
     img: 'https://picsum.photos/seed/outstation-boyband-india/400/520',
     url: 'https://www.forbes.com/sites/hannahabraham/2026/02/27/the-very-beginning-of-outstation/',
   },
@@ -75,8 +79,9 @@ const PLACEHOLDER_COVERS = [
     headline: '2026 Actor Awards Shake Up The Oscar Race: A Category-By-Category Breakdown',
     publication: 'Forbes',
     date: 'Mar 1, 2026',
-    color: '#DDD9EF',
-    accent: '#3D3460',
+    color: '#FFFFFF',
+    accent: '#1A1A1A',
+    tagType: 'coral',
     img: 'https://picsum.photos/seed/actor-awards-oscars-2026/400/520',
     url: 'https://www.forbes.com/sites/hannahabraham/2026/03/01/what-the-actor-awards-2026-tell-us-about-the-oscar-race-a-category-by-category-breakdown/',
   },
@@ -86,8 +91,9 @@ const PLACEHOLDER_COVERS = [
     headline: '\'Munjya\' Star Sharvari On Finding Success In Bollywood & Her Desire To Work With Greta Gerwig',
     publication: 'Deadline',
     date: 'Jul 2024',
-    color: '#EAE7F5',
-    accent: '#584B77',
+    color: '#F8F5F0',
+    accent: '#1A1A1A',
+    tagType: 'gold',
     img: 'https://picsum.photos/seed/munjya-sharvari-bollywood/400/520',
     url: 'https://deadline.com/2024/07/munjya-sharvari-bollywood-greta-gerwig-yrf-alia-bhatt-1235999575/',
   },
@@ -97,8 +103,9 @@ const PLACEHOLDER_COVERS = [
     headline: 'CJ ENM CEO On $800M Content Strategy, IP Transformation And Hollywood Ambitions',
     publication: 'Forbes',
     date: 'Feb 16, 2026',
-    color: '#C8C5DE',
-    accent: '#3D3460',
+    color: '#FFFFFF',
+    accent: '#1A1A1A',
+    tagType: 'coral',
     img: 'https://picsum.photos/seed/cjenm-ceo-hollywood/400/520',
     url: 'https://www.forbes.com/sites/hannahabraham/2026/02/16/cj-enm-ceo-on-800m-content-strategy-ip-transformation-and-no-other-choice-oscar-disappointment/',
   },
@@ -127,31 +134,32 @@ function ArticleShufflerSkeleton() {
       {[0, 1, 2].map((i) => (
         <div
           key={i}
-          className="absolute inset-0 rounded-sm"
+          className="absolute inset-0"
           style={{
             transform: `translateY(${i * 18}px) scale(${1 - i * 0.06})`,
             opacity: 1 - i * 0.28,
             zIndex: 3 - i,
             transformOrigin: 'top center',
-            backgroundColor: i === 0 ? '#C3C0D8' : i === 1 ? '#E8E4F0' : '#F4F0FA',
+            backgroundColor: i === 0 ? '#F8F5F0' : i === 1 ? '#FFFFFF' : '#F0EDE8',
+            border: '1px solid rgba(26,26,26,0.1)',
           }}
         >
           <div className="flex h-full">
             <div className="flex flex-col justify-between p-5 flex-1">
               <div>
-                <div className="h-2 w-24 rounded mb-3" style={{ backgroundColor: '#584B7740' }} />
+                <div className="h-2 w-20 mb-3" style={{ backgroundColor: '#DFBD3840' }} />
                 <div className="space-y-2">
-                  <div className="h-4 w-full rounded" style={{ backgroundColor: '#584B7730' }} />
-                  <div className="h-4 w-4/5 rounded" style={{ backgroundColor: '#584B7730' }} />
-                  <div className="h-4 w-3/5 rounded" style={{ backgroundColor: '#584B7730' }} />
+                  <div className="h-4 w-full" style={{ backgroundColor: '#1A1A1A15' }} />
+                  <div className="h-4 w-4/5" style={{ backgroundColor: '#1A1A1A15' }} />
+                  <div className="h-4 w-3/5" style={{ backgroundColor: '#1A1A1A15' }} />
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <div className="h-2 w-16 rounded" style={{ backgroundColor: '#584B7730' }} />
-                <div className="h-2 w-12 rounded" style={{ backgroundColor: '#584B7730' }} />
+                <div className="h-2 w-16" style={{ backgroundColor: '#1A1A1A15' }} />
+                <div className="h-2 w-12" style={{ backgroundColor: '#1A1A1A15' }} />
               </div>
             </div>
-            <div className="w-[110px] flex-shrink-0" style={{ backgroundColor: '#584B7720' }} />
+            <div className="w-[110px] flex-shrink-0" style={{ backgroundColor: '#1A1A1A08' }} />
           </div>
         </div>
       ))}
@@ -159,18 +167,25 @@ function ArticleShufflerSkeleton() {
   );
 }
 
+ArticleShuffler.propTypes = {
+  articles: PropTypes.array,
+};
+
 function ArticleShuffler({ articles }) {
-  const [cards, setCards] = useState(articles || PLACEHOLDER_COVERS);
+  const resolvedSource = (articles && articles.length > 0) ? articles : PLACEHOLDER_COVERS;
+  const [cards, setCards] = useState(resolvedSource);
+  const sourceRef = useRef(resolvedSource);
 
   useEffect(() => {
-    if (articles && articles.length > 0) {
-      setCards(articles);
-    }
+    sourceRef.current = (articles && articles.length > 0) ? articles : PLACEHOLDER_COVERS;
   }, [articles]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCards((prev) => {
+        if (prev.length !== sourceRef.current.length || prev[0] !== sourceRef.current[0]) {
+          return sourceRef.current;
+        }
         const next = [...prev];
         next.push(next.shift());
         return next;
@@ -194,11 +209,13 @@ function ArticleShuffler({ articles }) {
           ? { href: card.url, target: '_blank', rel: 'noopener noreferrer', style: { cursor: 'pointer' } }
           : {};
 
+        const tagType = card.tagType || (i % 2 === 0 ? 'gold' : 'coral');
+
         return (
           <Wrapper
             key={card.id}
             {...wrapperProps}
-            className="absolute inset-0 rounded-sm overflow-hidden group"
+            className="absolute inset-0 overflow-hidden group"
             style={{
               transform: `translateY(${translateY}px) scale(${scale})`,
               opacity,
@@ -206,6 +223,7 @@ function ArticleShuffler({ articles }) {
               transition: 'all 0.72s cubic-bezier(0.34, 1.56, 0.64, 1)',
               transformOrigin: 'top center',
               backgroundColor: card.cardColor || card.color,
+              border: '1px solid rgba(26,26,26,0.12)',
               textDecoration: 'none',
               ...(wrapperProps.style || {}),
             }}
@@ -215,32 +233,35 @@ function ArticleShuffler({ articles }) {
               <div className="flex flex-col justify-between p-5 flex-1">
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <span
-                      className="font-jakarta text-[9px] uppercase tracking-[0.3em] font-bold"
-                      style={{ color: card.accentColor || card.accent, opacity: 0.7 }}
-                    >
+                    <span className={tagType === 'coral' ? 'tag-coral' : 'tag-gold'}>
                       {card.category}
                     </span>
                     {isTop && card.url && (
                       <ExternalLink
                         size={10}
-                        style={{ color: card.accentColor || card.accent, opacity: 0.4 }}
-                        className="transition-opacity duration-200 group-hover:opacity-80"
+                        style={{ color: 'var(--color-charcoal)', opacity: 0.35 }}
+                        className="transition-opacity duration-200 group-hover:opacity-70"
                       />
                     )}
                   </div>
                   <p
-                    className="font-cormorant font-semibold leading-snug text-lg"
-                    style={{ color: card.accentColor || card.accent }}
+                    className="font-serif font-semibold leading-snug text-base mt-2"
+                    style={{ color: 'var(--color-charcoal)' }}
                   >
                     {card.title || card.headline}
                   </p>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="font-jakarta text-[10px]" style={{ color: card.accentColor || card.accent, opacity: 0.6 }}>
+                  <span
+                    className="font-ui uppercase"
+                    style={{ fontSize: '0.6rem', letterSpacing: '0.08em', fontWeight: 600, color: 'var(--color-text-secondary)', opacity: 0.7 }}
+                  >
                     {card.publication}
                   </span>
-                  <span className="font-jakarta text-[10px]" style={{ color: card.accentColor || card.accent, opacity: 0.5 }}>
+                  <span
+                    className="font-sans"
+                    style={{ fontSize: '0.65rem', color: 'var(--color-text-secondary)', opacity: 0.55 }}
+                  >
                     {card.date
                       ? /^\d{4}-\d{2}/.test(card.date)
                         ? new Date(card.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
@@ -268,20 +289,16 @@ function ArticleShuffler({ articles }) {
 
 // ─── CARD 2: TELEMETRY TYPEWRITER ────────────────────────────────────────────
 
+TelemetryTypewriter.propTypes = {
+  headlines: PropTypes.array,
+};
+
 function TelemetryTypewriter({ headlines }) {
   const items = headlines && headlines.length > 0 ? headlines : PLACEHOLDER_HEADLINES.map(t => ({ title: t, url: null }));
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [charIndex, setCharIndex] = useState(0);
-
-  // Reset when headlines change (after Sanity fetch)
-  useEffect(() => {
-    setCurrentIndex(0);
-    setDisplayText('');
-    setCharIndex(0);
-    setIsDeleting(false);
-  }, [headlines]);
 
   useEffect(() => {
     if (!items.length) return;
@@ -301,8 +318,10 @@ function TelemetryTypewriter({ headlines }) {
         setCharIndex((c) => c - 1);
       }, 14);
     } else if (isDeleting && charIndex === 0) {
-      setIsDeleting(false);
-      setCurrentIndex((i) => (i + 1) % items.length);
+      timeout = setTimeout(() => {
+        setIsDeleting(false);
+        setCurrentIndex((i) => (i + 1) % items.length);
+      }, 0);
     }
     return () => clearTimeout(timeout);
   }, [charIndex, isDeleting, currentIndex, items]);
@@ -314,28 +333,28 @@ function TelemetryTypewriter({ headlines }) {
         <span className="relative flex h-2 w-2">
           <span
             className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-            style={{ backgroundColor: 'var(--color-violet)' }}
+            style={{ backgroundColor: 'var(--color-gold)' }}
           />
           <span
             className="relative inline-flex rounded-full h-2 w-2"
-            style={{ backgroundColor: 'var(--color-violet)' }}
+            style={{ backgroundColor: 'var(--color-gold)' }}
           />
         </span>
         <span
-          className="font-jakarta text-[10px] uppercase tracking-[0.28em] font-semibold"
-          style={{ color: 'var(--color-violet)' }}
+          className="font-ui uppercase"
+          style={{ fontSize: '0.6rem', letterSpacing: '0.28em', fontWeight: 600, color: 'var(--color-charcoal)', opacity: 0.55 }}
         >
           Live Entertainment Feed
         </span>
       </div>
 
       {/* Divider */}
-      <div className="h-px w-full" style={{ backgroundColor: 'var(--color-gray-light)' }} />
+      <div className="h-px w-full" style={{ backgroundColor: 'rgba(26,26,26,0.12)' }} />
 
       {/* Headline stream */}
       <div className="flex-1 flex flex-col justify-center">
         <p
-          className="font-cormorant font-semibold leading-snug typewriter-text"
+          className="font-serif font-semibold leading-snug typewriter-text"
           style={{
             fontSize: 'clamp(1rem, 2.2vw, 1.35rem)',
             color: 'var(--color-charcoal)',
@@ -350,17 +369,17 @@ function TelemetryTypewriter({ headlines }) {
       {/* Footer */}
       <div
         className="pt-3 border-t flex items-center justify-between"
-        style={{ borderColor: 'var(--color-gray-light)' }}
+        style={{ borderColor: 'rgba(26,26,26,0.1)' }}
       >
         <span
-          className="font-jakarta text-[10px] uppercase tracking-widest"
-          style={{ color: 'var(--color-gray-mid)' }}
+          className="font-ui uppercase"
+          style={{ fontSize: '0.6rem', letterSpacing: '0.1em', fontWeight: 600, color: 'var(--color-text-secondary)', opacity: 0.6 }}
         >
           {currentIndex + 1} / {items.length} — Breaking
         </span>
         <span
-          className="font-jakarta text-[10px] font-medium"
-          style={{ color: 'var(--color-violet)' }}
+          className="font-ui uppercase"
+          style={{ fontSize: '0.6rem', letterSpacing: '0.1em', fontWeight: 600, color: 'var(--color-gold)' }}
         >
           Entertainment
         </span>
@@ -441,14 +460,14 @@ function EditorialScheduler() {
     <div className="flex flex-col h-full gap-4" ref={gridRef}>
       <div className="flex items-center justify-between">
         <span
-          className="font-jakarta text-[10px] uppercase tracking-[0.28em] font-semibold"
-          style={{ color: 'var(--color-violet)' }}
+          className="font-ui uppercase"
+          style={{ fontSize: '0.6rem', letterSpacing: '0.28em', fontWeight: 600, color: 'var(--color-charcoal)', opacity: 0.55 }}
         >
           Publishing Schedule — Forbes · Deadline · BI
         </span>
         <span
-          className="font-jakarta text-[10px]"
-          style={{ color: 'var(--color-gray-mid)' }}
+          className="font-sans"
+          style={{ fontSize: '0.65rem', color: 'var(--color-text-secondary)', opacity: 0.6 }}
         >
           Mar 2026
         </span>
@@ -464,42 +483,44 @@ function EditorialScheduler() {
             <div
               key={`${day}-${i}`}
               data-day={i}
-              className="flex flex-col items-center gap-1.5 p-2 rounded-sm cursor-default transition-all duration-300"
+              className="flex flex-col items-center gap-1.5 p-2 cursor-default transition-all duration-300"
               style={{
                 backgroundColor: isActive
-                  ? 'var(--color-periwinkle)'
+                  ? 'var(--color-gold)'
                   : isScheduled
-                    ? 'rgba(195,192,216,0.22)'
-                    : 'rgba(232,232,238,0.4)',
+                    ? 'rgba(223,189,56,0.14)'
+                    : 'rgba(26,26,26,0.04)',
                 transform: isActive ? 'scale(1.06)' : 'scale(1)',
-                boxShadow: isActive ? '0 4px 12px rgba(88,75,119,0.2)' : 'none',
+                boxShadow: isActive ? '0 4px 12px rgba(223,189,56,0.3)' : 'none',
+                borderRadius: '2px',
               }}
             >
               <span
-                className="font-jakarta text-[9px] uppercase tracking-widest font-semibold"
-                style={{ color: isActive ? 'var(--color-violet)' : 'var(--color-gray-mid)' }}
+                className="font-ui uppercase"
+                style={{ fontSize: '0.55rem', letterSpacing: '0.1em', fontWeight: 600, color: isActive ? 'var(--color-charcoal)' : 'var(--color-text-secondary)', opacity: isActive ? 1 : 0.7 }}
               >
                 {day}
               </span>
               <div
-                className="w-5 h-5 rounded-full flex items-center justify-center transition-colors duration-300"
+                className="w-5 h-5 flex items-center justify-center transition-colors duration-300"
                 style={{
                   backgroundColor: isActive
-                    ? 'var(--color-violet)'
+                    ? 'rgba(26,26,26,0.15)'
                     : isScheduled
-                      ? 'var(--color-periwinkle)'
+                      ? 'rgba(223,189,56,0.35)'
                       : 'transparent',
+                  borderRadius: '50%',
                 }}
               >
                 {isScheduled && !isActive && (
                   <div
                     className="w-1.5 h-1.5 rounded-full"
-                    style={{ backgroundColor: 'var(--color-violet)' }}
+                    style={{ backgroundColor: 'var(--color-gold)' }}
                   />
                 )}
                 {isActive && (
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-                    <path d="M2 5.5L4 7.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M2 5.5L4 7.5L8 3" stroke="#1A1A1A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
               </div>
@@ -509,26 +530,29 @@ function EditorialScheduler() {
       </div>
 
       {/* Divider */}
-      <div className="h-px w-full" style={{ backgroundColor: 'var(--color-gray-light)' }} />
+      <div className="h-px w-full" style={{ backgroundColor: 'rgba(26,26,26,0.1)' }} />
 
       {/* Read Now Button */}
       <div ref={btnRef} className="flex items-center gap-3">
         <button
-          className="flex items-center gap-2 font-jakarta text-xs font-semibold uppercase tracking-widest px-5 py-2.5 rounded-sm border transition-all duration-300"
+          className="flex items-center gap-2 font-ui uppercase tracking-[0.08em] px-5 py-2.5 border transition-all duration-300"
           style={{
-            borderColor: buttonActive ? 'transparent' : 'var(--color-violet)',
-            backgroundColor: buttonActive ? 'var(--color-violet)' : 'transparent',
-            color: buttonActive ? '#fff' : 'var(--color-violet)',
+            fontSize: '0.7rem',
+            fontWeight: 600,
+            borderColor: buttonActive ? 'var(--color-gold)' : 'var(--color-charcoal)',
+            backgroundColor: buttonActive ? 'var(--color-gold)' : 'transparent',
+            color: 'var(--color-charcoal)',
             transform: buttonActive ? 'scale(1.04)' : 'scale(1)',
+            borderRadius: '2px',
           }}
           aria-label="Read latest column"
         >
-          Read Now
+          Read now
           <ArrowRight size={11} />
         </button>
         <span
-          className="font-jakarta text-[10px]"
-          style={{ color: 'var(--color-gray-mid)' }}
+          className="font-sans"
+          style={{ fontSize: '0.65rem', color: 'var(--color-text-secondary)', opacity: 0.6 }}
         >
           200+ articles across Forbes, Deadline & more
         </span>
@@ -548,8 +572,8 @@ function EditorialScheduler() {
       >
         <path
           d="M5 3L19 12L12 13.5L9 20L5 3Z"
-          fill="#584B77"
-          stroke="#fff"
+          fill="#1A1A1A"
+          stroke="#DFBD38"
           strokeWidth="1"
           strokeLinejoin="round"
         />
@@ -638,59 +662,64 @@ export default function LatestWork() {
       id="work"
       ref={sectionRef}
       className="relative py-24 md:py-32"
-      style={{ backgroundColor: 'var(--color-white)' }}
+      style={{ backgroundColor: 'var(--color-bg-primary)' }}
       aria-label="Latest Work"
     >
       <div className="max-w-[1400px] mx-auto px-6 md:px-10">
         {/* Section header */}
         <div ref={headingRef} className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-16">
           <div>
-            <span
-              className="font-jakarta text-xs uppercase tracking-[0.3em] font-semibold block mb-4"
-              style={{ color: 'var(--color-periwinkle)' }}
-            >
-              — Selected Work
-            </span>
+            <div className="flex items-center gap-3 mb-4">
+              <span
+                className="inline-block w-8 h-px"
+                style={{ backgroundColor: 'var(--color-gold)' }}
+                aria-hidden="true"
+              />
+              <span
+                className="font-ui uppercase"
+                style={{ fontSize: '0.6rem', letterSpacing: '0.28em', fontWeight: 600, color: 'var(--color-gold)' }}
+              >
+                Selected Work
+              </span>
+            </div>
             <h2
-              className="font-cormorant font-bold leading-tight tracking-tight"
+              className="font-serif font-bold leading-tight"
               style={{
                 fontSize: 'clamp(2.5rem, 6vw, 5rem)',
-                color: 'var(--color-violet)',
+                color: 'var(--color-charcoal)',
+                letterSpacing: '-0.02em',
               }}
             >
-              The Latest
+              The latest
               <br />
-              <span className="font-light italic">from the desk</span>
+              <span className="font-normal italic">from the desk</span>
             </h2>
           </div>
           <Link
             to="/archive"
-            className="flex items-center gap-2 font-jakarta text-sm font-medium self-start md:self-auto transition-all duration-200 hover:gap-3"
-            style={{ color: 'var(--color-violet)' }}
+            className="flex items-center gap-2 font-ui text-xs font-semibold uppercase tracking-[0.1em] self-start md:self-auto transition-all duration-200 hover:gap-3"
+            style={{ color: 'var(--color-charcoal)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-gold)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-charcoal)'; }}
           >
-            View All Articles
-            <ArrowRight size={14} />
+            View all articles
+            <ArrowRight size={13} />
           </Link>
         </div>
 
         {/* Cards bento grid — intentionally asymmetric */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr_1fr] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr_1fr] gap-5">
           {/* Card 1 — Article Shuffler */}
           <div
             ref={(el) => (cardsRef.current[0] = el)}
-            className="rounded-sm p-6 flex flex-col gap-4 border"
+            className="p-6 flex flex-col gap-4"
             style={{
-              borderColor: 'var(--color-gray-light)',
-              backgroundColor: 'var(--color-white)',
+              border: '1px solid rgba(26,26,26,0.12)',
+              backgroundColor: 'var(--color-bg-secondary)',
             }}
           >
             <div className="flex items-center gap-2 mb-1">
-              <span
-                className="font-jakarta text-[9px] uppercase tracking-[0.3em] font-bold block"
-                style={{ color: 'var(--color-gray-mid)' }}
-              >
-                Featured Interviews
-              </span>
+              <span className="tag-gold">Featured Interviews</span>
             </div>
             {loading ? (
               <ArticleShufflerSkeleton />
@@ -702,10 +731,10 @@ export default function LatestWork() {
           {/* Card 2 — Telemetry Typewriter (center, larger) */}
           <div
             ref={(el) => (cardsRef.current[1] = el)}
-            className="rounded-sm p-7 flex flex-col border"
+            className="p-7 flex flex-col"
             style={{
-              borderColor: 'var(--color-periwinkle)',
-              backgroundColor: '#FAFAFE',
+              border: '1px solid var(--color-gold)',
+              backgroundColor: 'var(--color-bg-primary)',
             }}
           >
             <TelemetryTypewriter headlines={headlineArticles.length > 0 ? headlineArticles : undefined} />
@@ -714,10 +743,10 @@ export default function LatestWork() {
           {/* Card 3 — Editorial Scheduler (relative for cursor positioning) */}
           <div
             ref={(el) => (cardsRef.current[2] = el)}
-            className="rounded-sm p-6 flex flex-col border relative overflow-hidden"
+            className="p-6 flex flex-col relative overflow-hidden"
             style={{
-              borderColor: 'var(--color-gray-light)',
-              backgroundColor: 'var(--color-white)',
+              border: '1px solid rgba(26,26,26,0.12)',
+              backgroundColor: 'var(--color-bg-secondary)',
             }}
           >
             <EditorialScheduler />
