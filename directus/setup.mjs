@@ -30,8 +30,8 @@ import {
 } from '@directus/sdk';
 
 const URL = process.env.DIRECTUS_URL || 'http://localhost:8055';
-const EMAIL = process.env.DIRECTUS_EMAIL || 'admin@hannah.com';
-const PASSWORD = process.env.DIRECTUS_PASSWORD || 'admin1234';
+const EMAIL = process.env.DIRECTUS_EMAIL || 'admin@example.com';
+const PASSWORD = process.env.DIRECTUS_PASSWORD || 'changeme123';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -181,7 +181,7 @@ async function setPermissions() {
         return;
     }
 
-    for (const collection of ['articles', 'testimonials', 'site_settings']) {
+    for (const collection of ['articles', 'testimonials', 'site_settings', 'directus_files']) {
         await tryCreate(`public read → ${collection}`, () =>
             client.request(createPermission({
                 policy: publicPolicy.id,
