@@ -6,12 +6,27 @@ version: "3.7"
 # ──────────────────────────────────────────────────────────────────────────────
 
 services:
+
+  # ── Nginx Reverse Proxy ─────────────────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: hannah_nginx_prod
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - frontend
+      - directus
+
   directus:
     image: directus/directus:11
     container_name: hannah_directus_prod
     restart: always
-    ports:
-      - "8055:8055" # Exposing on native Directus port instead of 80 to make room for Frontend
+    expose:
+      - "8055"
     volumes:
       - directus_db_prod:/directus/database
       - directus_uploads_prod:/directus/uploads
@@ -29,17 +44,20 @@ services:
       # CORS
       CORS_ENABLED: "true"
       # IMPORTANT: In production, tighten this to your actual Frontend URL
-      CORS_ORIGIN: "http://34.100.194.88,http://localhost:5173,http://localhost:4173"
+      CORS_ORIGIN: "http://34.100.194.88,http://localhost"
       CORS_METHODS: "GET,POST,PATCH,DELETE,OPTIONS"
 
       LOG_LEVEL: "info"
+
+      # Reverse proxy awareness — Directus uses this to build public asset URLs
+      PUBLIC_URL: "http://34.100.194.88/cms"
 
   frontend:
     image: asia-south1-docker.pkg.dev/gen-lang-client-0321775722/portfolio/frontend:latest
     container_name: hannah_frontend_prod
     restart: always
-    ports:
-      - "80:4173" # Expose Vite deployment on http port 80
+    expose:
+      - "4173"
     environment:
       - PORT=4173
 
