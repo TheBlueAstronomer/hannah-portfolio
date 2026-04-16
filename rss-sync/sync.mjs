@@ -152,42 +152,51 @@ function parseItem(itemXml) {
  */
 async function fetchFeed() {
     const browser = await chromium.launch({
+        headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
     try {
         for (let attempt = 1; attempt <= FETCH_MAX_RETRIES; attempt++) {
-            const page = await browser.newPage();
+            const context = await browser.newContext({
+                userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                extraHTTPHeaders: {
+                    'Accept':          'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Accept-Encoding': 'gzip, deflate, br',
+                },
+            });
+            const page = await context.newPage();
 
             try {
-                await page.setExtraHTTPHeaders({
-                    'Accept': 'application/rss+xml, application/xml, text/xml, */*',
-                });
-
                 await page.goto(FORBES_FEED_URL, {
-                    waitUntil: 'networkidle',
-                    timeout:   30_000,
+                    waitUntil: 'load',
+                    timeout:   45_000,
                 });
 
-                const content = await page.content();
+                // Wait up to 15s for Cloudflare JS challenge to complete and XML to appear
+                await page.waitForFunction(
+                    () => document.body.innerText.includes('<rss') || document.body.innerText.includes('<feed') || document.body.innerText.includes('<?xml'),
+                    { timeout: 15_000 }
+                ).catch(() => {});
 
-                if (!content.includes('<rss') && !content.includes('<feed')) {
+                const xml = await page.evaluate(() => document.body.innerText);
+
+                if (!xml.includes('<rss') && !xml.includes('<feed') && !xml.includes('<?xml')) {
                     console.warn(`  ⚠️  Attempt ${attempt}: got HTML instead of XML (Cloudflare challenge?) — retrying…`);
-                    await page.close();
-                    await new Promise(r => setTimeout(r, 3_000 * attempt));
+                    await context.close();
+                    await new Promise(r => setTimeout(r, 5_000 * attempt));
                     continue;
                 }
 
-                // page.content() wraps the XML in an HTML shell — extract just the raw XML text
-                const xml = await page.evaluate(() => document.body.innerText);
-                await page.close();
+                await context.close();
                 return xml;
 
             } catch (err) {
-                await page.close();
+                await context.close();
                 if (attempt === FETCH_MAX_RETRIES) throw err;
                 console.warn(`  ⚠️  Attempt ${attempt} failed: ${err.message} — retrying…`);
-                await new Promise(r => setTimeout(r, 3_000 * attempt));
+                await new Promise(r => setTimeout(r, 5_000 * attempt));
             }
         }
 
