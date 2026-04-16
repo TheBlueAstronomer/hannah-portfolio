@@ -89,6 +89,43 @@ steps:
     id: 'deploy-vm'
     waitFor: ['push-frontend', 'push-rss-sync']
 
+  # 6. Apply public read permissions — runs after containers are up
+  #    Idempotent: safe on every deploy. Creates missing perms, patches existing ones.
+  #    Requires DIRECTUS_ADMIN_EMAIL + DIRECTUS_ADMIN_PASSWORD in Cloud Build substitutions
+  #    or Secret Manager (see README for setup).
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud secrets versions access latest \
+          --secret=hannah-deploy-ssh-key \
+          --project=$PROJECT_ID > /root/.ssh/deploy_key
+        chmod 600 /root/.ssh/deploy_key
+
+        # Wait up to 30s for Directus to be ready after container restart
+        ssh -i /root/.ssh/deploy_key -o StrictHostKeyChecking=no \
+          deploy@34.100.194.88 "
+            for i in \$(seq 1 6); do
+              curl -sf http://localhost/cms/server/health > /dev/null && break
+              echo \"Waiting for Directus… (\$i/6)\" && sleep 5
+            done
+          "
+
+        # Run the idempotent permission enforcer using the admin credentials from Secret Manager
+        ADMIN_EMAIL=\$(gcloud secrets versions access latest --secret=hannah-admin-email --project=$PROJECT_ID)
+        ADMIN_PASSWORD=\$(gcloud secrets versions access latest --secret=hannah-admin-password --project=$PROJECT_ID)
+
+        ssh -i /root/.ssh/deploy_key -o StrictHostKeyChecking=no \
+          deploy@34.100.194.88 "
+            DIRECTUS_URL=http://localhost/cms \
+            DIRECTUS_EMAIL='${ADMIN_EMAIL}' \
+            DIRECTUS_PASSWORD='${ADMIN_PASSWORD}' \
+            node /opt/hannah-portfolio/directus/apply-permissions.mjs
+          "
+    id: 'apply-permissions'
+    waitFor: ['deploy-vm']
+
 images:
   - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:$COMMIT_SHA'
   - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:latest'
