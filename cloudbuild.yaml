@@ -113,12 +113,12 @@ steps:
           "
 
         # Run the idempotent permission enforcer using the admin credentials from Secret Manager
-        ADMIN_EMAIL=$(gcloud secrets versions access latest --secret=hannah-admin-email --project=$PROJECT_ID)
-        ADMIN_PASSWORD=$(gcloud secrets versions access latest --secret=hannah-admin-password --project=$PROJECT_ID)
+        ADMIN_EMAIL=$$(gcloud secrets versions access latest --secret=hannah-admin-email --project=$PROJECT_ID)
+        ADMIN_PASSWORD=$$(gcloud secrets versions access latest --secret=hannah-admin-password --project=$PROJECT_ID)
 
         ssh -i /root/.ssh/deploy_key -o StrictHostKeyChecking=no \
           deploy@34.100.194.88 \
-          "DIRECTUS_URL=http://localhost/cms DIRECTUS_EMAIL='$ADMIN_EMAIL' DIRECTUS_PASSWORD='$ADMIN_PASSWORD' node /opt/hannah-portfolio/directus/apply-permissions.mjs"
+          "DIRECTUS_URL=http://localhost/cms DIRECTUS_EMAIL='$$ADMIN_EMAIL' DIRECTUS_PASSWORD='$$ADMIN_PASSWORD' node /opt/hannah-portfolio/directus/apply-permissions.mjs"
     id: 'apply-permissions'
     waitFor: ['deploy-vm']
 
