@@ -72,7 +72,10 @@ services:
       DIRECTUS_URL: "http://directus:8055"
       SYNC_INTERVAL_MS: "21600000"
       SERVER_PORT: "3000"
-    mem_limit: 700m
+    deploy:
+      resources:
+        limits:
+          memory: 700m
     expose:
       - "3000"
     depends_on:
