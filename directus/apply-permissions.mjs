@@ -110,9 +110,15 @@ async function main() {
     console.log('\n🔍  Verifying public read access (unauthenticated) …');
     let allGood = true;
     for (const collection of COLLECTIONS) {
-        const endpoint = collection === 'site_settings'
-            ? `${BASE}/items/${collection}`
-            : `${BASE}/items/${collection}?limit=1`;
+        // directus_files is a system collection — served at /files, not /items/directus_files
+        let endpoint;
+        if (collection === 'directus_files') {
+            endpoint = `${BASE}/files?limit=1`;
+        } else if (collection === 'site_settings') {
+            endpoint = `${BASE}/items/${collection}`;
+        } else {
+            endpoint = `${BASE}/items/${collection}?limit=1`;
+        }
         const res = await fetch(endpoint);
         const icon = res.ok ? '✅' : '❌';
         console.log(`   ${icon}  ${collection}: HTTP ${res.status}`);
