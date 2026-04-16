@@ -79,7 +79,7 @@ steps:
           cd /opt/hannah-portfolio && \
           gcloud auth configure-docker asia-south1-docker.pkg.dev --quiet && \
           docker-compose -f docker-compose.prod.yml pull && \
-          docker-compose -f docker-compose.prod.yml up -d'"
+          docker-compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans'"
 
         # Remove stale ephemeral root keys injected by Cloud Build containers to prevent login profile size accumulation
         current_keys=$(gcloud compute project-info describe --project=$PROJECT_ID --format="value(commonInstanceMetadata.items['ssh-keys'])")
