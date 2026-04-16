@@ -92,26 +92,21 @@ services:
       - directus
 
   # ── RSS Sync ──────────────────────────────────────────────────────────────────
-  # Polls the Forbes RSS proxy feed every 6 hours and imports new articles.
-  # Requires DIRECTUS_TOKEN and FORBES_RSS_URL to be set in .env.directus.
-  # To disable, comment out this service or remove it entirely.
+  # Fetches Forbes RSS directly via Playwright headless Chromium (bypasses
+  # Cloudflare), imports new articles into Directus every 6 hours.
+  # Requires DIRECTUS_TOKEN to be set in .env.directus.
   rss-sync:
-    image: node:20-alpine
+    build:
+      context: ./rss-sync
+      dockerfile: Dockerfile
     container_name: hannah_rss_sync
     restart: unless-stopped
-    working_dir: /app
     env_file:
       - .env.directus
-    volumes:
-      - ./directus:/app/directus:ro          # rss-sync.mjs (read-only)
-      - ./node_modules_rss:/app/node_modules # isolated node_modules
-      - ./package_rss.json:/app/package.json:ro
     environment:
       DIRECTUS_URL: "http://directus:8055"   # internal Docker network URL
       SYNC_INTERVAL_MS: "21600000"           # 6 hours; lower for testing
       SERVER_PORT: "3000"
-      NODE_TLS_REJECT_UNAUTHORIZED: "0"      # rss.app cert chain not in Alpine's CA bundle
-    command: ["sh", "-c", "npm install --silent && node directus/rss-sync.mjs --server"]
     expose:
       - "3000"                               # internal only — not published to host
     depends_on:
@@ -120,3 +115,4 @@ services:
 volumes:
   directus_db:
   directus_uploads:
+  # node_modules_rss removed — deps are now baked into the rss-sync image

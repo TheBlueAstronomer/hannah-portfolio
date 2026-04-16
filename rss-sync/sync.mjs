@@ -1,23 +1,25 @@
 #!/usr/bin/env node
 /**
- * rss-sync.mjs
- * ------------
- * Polls the Forbes RSS proxy feed (via rss.app or similar) and imports
- * new articles into the Directus `articles` collection.
+ * sync.mjs
+ * --------
+ * Fetches the Forbes RSS feed for Hannah Abraham using a Playwright headless
+ * Chromium browser (bypasses Cloudflare bot protection) and imports new articles
+ * into the Directus `articles` collection.
  *
  * For each new RSS item it:
  *   1. Checks whether the article URL already exists in Directus (dedup)
- *   2. Downloads the article's main image from <media:content> or <enclosure>
- *   3. Uploads the image to Directus Files → gets back a file UUID
- *   4. Creates a new record in the `articles` collection with:
+ *   2. Fetches the article page to extract <meta property="og:image"> (Forbes RSS
+ *      does not include image tags — cover images are only in the article HTML)
+ *   3. Downloads the image from the Forbes CDN
+ *   4. Uploads the image to Directus Files → gets back a file UUID
+ *   5. Creates a new record in the `articles` collection with:
  *        is_headline: false  ← Hannah toggles this manually in the CMS
  *        is_featured: false  ← Hannah toggles this manually in the CMS
  *
  * Usage (manual one-shot):
  *   DIRECTUS_URL=http://localhost:8055 \
  *   DIRECTUS_TOKEN=<admin-static-token> \
- *   FORBES_RSS_URL=<your-rss.app-proxy-url> \
- *   node directus/rss-sync.mjs
+ *   node sync.mjs
  *
  * Modes (pass as CLI flag):
  *   (none)    — run sync once and exit
@@ -31,33 +33,31 @@
  * Required env vars:
  *   DIRECTUS_URL      — e.g. http://localhost:8055 (or http://directus:8055 inside Docker)
  *   DIRECTUS_TOKEN    — Directus admin static token (Settings → API Tokens)
- *   FORBES_RSS_URL    — rss.app (or other) proxy URL for Hannah's Forbes feed
  *
  * Optional env vars:
  *   SYNC_INTERVAL_MS  — polling interval in --watch/--server mode (default: 21600000 = 6 h)
  *   SERVER_PORT       — HTTP port for --server mode (default: 3000)
+ *   FETCH_MAX_RETRIES — Playwright fetch attempts before giving up (default: 3)
  *   DRY_RUN           — set to "true" to parse and log without writing to Directus
  */
 
 import http from 'node:http';
+import { chromium } from 'playwright';
 import { createDirectus, rest, staticToken, readItems, createItem, deleteItems, deleteFiles } from '@directus/sdk';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const DIRECTUS_URL   = process.env.DIRECTUS_URL   || 'http://localhost:8055';
-const DIRECTUS_TOKEN = process.env.DIRECTUS_TOKEN;
-const FORBES_RSS_URL = process.env.FORBES_RSS_URL;
-const DRY_RUN        = process.env.DRY_RUN === 'true';
-const SYNC_INTERVAL  = parseInt(process.env.SYNC_INTERVAL_MS || '21600000', 10); // 6 hours
-const SERVER_PORT    = parseInt(process.env.SERVER_PORT || '3000', 10);
+const DIRECTUS_URL    = process.env.DIRECTUS_URL   || 'http://localhost:8055';
+const DIRECTUS_TOKEN  = process.env.DIRECTUS_TOKEN;
+const DRY_RUN         = process.env.DRY_RUN === 'true';
+const SYNC_INTERVAL   = parseInt(process.env.SYNC_INTERVAL_MS || '21600000', 10); // 6 hours
+const SERVER_PORT     = parseInt(process.env.SERVER_PORT || '3000', 10);
+const FETCH_MAX_RETRIES = parseInt(process.env.FETCH_MAX_RETRIES || '3', 10);
+
+const FORBES_FEED_URL = 'https://www.forbes.com/sites/hannahabraham/feed/';
 
 if (!DIRECTUS_TOKEN) {
     console.error('❌  DIRECTUS_TOKEN is required. Generate one in Directus → Settings → API Tokens.');
-    process.exit(1);
-}
-
-if (!FORBES_RSS_URL) {
-    console.error('❌  FORBES_RSS_URL is required. Set it to your rss.app proxy URL.');
     process.exit(1);
 }
 
@@ -78,7 +78,6 @@ function extractTag(xml, tagName) {
     const match = xml.match(re);
     if (!match) return null;
     const raw = match[1].trim();
-    // Strip CDATA wrapper if present
     const cdata = raw.match(/^<!\[CDATA\[([\s\S]*?)\]\]>$/);
     return cdata ? cdata[1].trim() : raw;
 }
@@ -108,12 +107,10 @@ function parseItems(xml) {
 
 /**
  * Parses a single RSS <item> block into a structured object.
+ * Note: Forbes RSS does not include image tags — imageUrl will always be null
+ * here; fetchOgImage() handles image discovery separately.
  */
 function parseItem(itemXml) {
-    // Primary image sources in order of preference:
-    //   1. <media:content url="..."> (most Forbes/WordPress feeds)
-    //   2. <enclosure url="...">
-    //   3. First <img src="..."> inside description HTML
     let imageUrl =
         extractAttr(itemXml, 'media:content', 'url') ||
         extractAttr(itemXml, 'enclosure', 'url') ||
@@ -125,11 +122,9 @@ function parseItem(itemXml) {
         if (imgMatch) imageUrl = imgMatch[1];
     }
 
-    // Strip all HTML tags from description to produce a plain-text excerpt
     const rawDesc = extractTag(itemXml, 'description') || '';
     const excerpt = rawDesc.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().slice(0, 500) || null;
 
-    // Normalise the pub date to YYYY-MM-DD
     const pubDateRaw = extractTag(itemXml, 'pubDate');
     let date = null;
     if (pubDateRaw) {
@@ -148,19 +143,113 @@ function parseItem(itemXml) {
     };
 }
 
+// ─── Playwright: feed fetch ───────────────────────────────────────────────────
+
+/**
+ * Launches a headless Chromium browser and fetches the Forbes RSS feed XML.
+ * Retries up to FETCH_MAX_RETRIES times with exponential backoff.
+ * Returns the raw RSS XML string.
+ */
+async function fetchFeed() {
+    const browser = await chromium.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
+
+    try {
+        for (let attempt = 1; attempt <= FETCH_MAX_RETRIES; attempt++) {
+            const page = await browser.newPage();
+
+            try {
+                await page.setExtraHTTPHeaders({
+                    'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+                });
+
+                await page.goto(FORBES_FEED_URL, {
+                    waitUntil: 'networkidle',
+                    timeout:   30_000,
+                });
+
+                const content = await page.content();
+
+                if (!content.includes('<rss') && !content.includes('<feed')) {
+                    console.warn(`  ⚠️  Attempt ${attempt}: got HTML instead of XML (Cloudflare challenge?) — retrying…`);
+                    await page.close();
+                    await new Promise(r => setTimeout(r, 3_000 * attempt));
+                    continue;
+                }
+
+                // page.content() wraps the XML in an HTML shell — extract just the raw XML text
+                const xml = await page.evaluate(() => document.body.innerText);
+                await page.close();
+                return xml;
+
+            } catch (err) {
+                await page.close();
+                if (attempt === FETCH_MAX_RETRIES) throw err;
+                console.warn(`  ⚠️  Attempt ${attempt} failed: ${err.message} — retrying…`);
+                await new Promise(r => setTimeout(r, 3_000 * attempt));
+            }
+        }
+
+        throw new Error(`Feed fetch failed after ${FETCH_MAX_RETRIES} attempts`);
+    } finally {
+        await browser.close();
+    }
+}
+
+// ─── Playwright: og:image fetch ───────────────────────────────────────────────
+
+/**
+ * Opens an article page in a new browser tab and extracts the og:image URL.
+ * Forbes RSS feeds contain no image tags — cover images are only available
+ * via <meta property="og:image"> in the article HTML.
+ *
+ * Uses domcontentloaded (not networkidle) because og:image is in <head> and
+ * present in the initial HTML payload — no JS execution needed.
+ *
+ * Returns the og:image URL string, or null if not found / on error.
+ */
+async function fetchOgImage(articleUrl, browser) {
+    const page = await browser.newPage();
+    try {
+        await page.goto(articleUrl, {
+            waitUntil: 'domcontentloaded',
+            timeout:   20_000,
+        });
+        return await page.evaluate(() => {
+            const el = document.querySelector('meta[property="og:image"]');
+            return el ? el.getAttribute('content') : null;
+        });
+    } catch (err) {
+        console.warn(`    ⚠️  og:image fetch failed for ${articleUrl}: ${err.message}`);
+        return null;
+    } finally {
+        await page.close();
+    }
+}
+
 // ─── Image helpers ────────────────────────────────────────────────────────────
 
 /**
- * Downloads an image from a URL and returns { buffer, contentType, filename }.
+ * Downloads an image from a URL and returns { buffer, contentType, ext }.
+ * Forbes CDN images (imageio.forbes.com) are not Cloudflare-protected —
+ * plain fetch works fine here.
  */
 async function downloadImage(url) {
-    const res = await fetch(url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; HannahPortfolioBot/1.0)' },
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30_000);
+    let res;
+    try {
+        res = await fetch(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; HannahPortfolioBot/1.0)' },
+            signal: controller.signal,
+        });
+    } finally {
+        clearTimeout(timer);
+    }
     if (!res.ok) throw new Error(`Image fetch failed: ${res.status} ${url}`);
     const contentType = res.headers.get('content-type') || 'image/jpeg';
     const buffer = Buffer.from(await res.arrayBuffer());
-    // Derive extension from the URL path, fallback to .jpg
     const urlPath = new URL(url).pathname;
     const urlFilename = urlPath.split('/').pop().split('?')[0] || '';
     const ext = urlFilename.includes('.') ? urlFilename.split('.').pop().split('?')[0] : 'jpg';
@@ -178,12 +267,11 @@ async function uploadImageToDirectus(imageUrl, title) {
 
     const form = new FormData();
     form.append('file', new Blob([buffer], { type: contentType }), filename);
-    form.append('folder', '');   // upload to root folder; adjust if you use folders
+    form.append('folder', '');
 
-    const token = await directus.getToken();
     const res = await fetch(`${DIRECTUS_URL}/files`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${DIRECTUS_TOKEN}` },
         body: form,
     });
 
@@ -193,7 +281,7 @@ async function uploadImageToDirectus(imageUrl, title) {
     }
 
     const json = await res.json();
-    return json.data.id; // UUID
+    return json.data.id;
 }
 
 // ─── Deduplication ────────────────────────────────────────────────────────────
@@ -227,23 +315,21 @@ async function fetchExistingUrls() {
     return existing;
 }
 
-// ─── Core sync logic (returns { imported, skipped }) ─────────────────────────
+// ─── Core sync logic ──────────────────────────────────────────────────────────
 
 async function syncWithResult() {
     const now = new Date().toISOString();
     console.log(`\n🔄  [${now}] Starting Forbes RSS sync …`);
-    console.log(`    Feed:     ${FORBES_RSS_URL}`);
+    console.log(`    Feed:     ${FORBES_FEED_URL}`);
     console.log(`    Directus: ${DIRECTUS_URL}`);
     if (DRY_RUN) console.log('    ⚠️  DRY RUN — no writes will be made.');
 
-    // 1. Fetch RSS feed
+    // 1. Fetch RSS feed via Playwright
     let xml;
     try {
-        const res = await fetch(FORBES_RSS_URL, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; HannahPortfolioBot/1.0)' },
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        xml = await res.text();
+        console.log('    Launching Chromium to fetch feed…');
+        xml = await fetchFeed();
+        console.log('    ✅  Feed fetched successfully.');
     } catch (err) {
         throw new Error(`Failed to fetch RSS feed: ${err.message}`);
     }
@@ -275,52 +361,70 @@ async function syncWithResult() {
     }
     console.log(`    ${newItems.length} new article(s) to import.`);
 
-    // 5. Import each new article
+    // 5. Import each new article — reuse a single browser for all og:image fetches
     let imported = 0;
     let skipped  = 0;
+    let ogBrowser = null;
 
-    for (const item of newItems) {
-        console.log(`\n  → "${item.title}"`);
-        console.log(`    URL:   ${item.url}`);
-        console.log(`    Date:  ${item.date}`);
-        console.log(`    Image: ${item.imageUrl || '(none)'}`);
-
-        if (DRY_RUN) {
-            console.log('    ⏭  Skipped (dry run).');
-            skipped++;
-            continue;
+    try {
+        if (!DRY_RUN) {
+            console.log('    Launching Chromium for og:image fetches…');
+            ogBrowser = await chromium.launch({
+                args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            });
         }
 
-        // 5a. Upload image (best effort — article is still created if image fails)
-        let imageUuid = null;
-        if (item.imageUrl) {
+        for (const item of newItems) {
+            console.log(`\n  → "${item.title}"`);
+            console.log(`    URL:   ${item.url}`);
+            console.log(`    Date:  ${item.date}`);
+
+            if (DRY_RUN) {
+                console.log('    ⏭  Skipped (dry run).');
+                skipped++;
+                continue;
+            }
+
+            // 5a. Fetch og:image if the RSS item didn't provide one (always the case for Forbes)
+            if (!item.imageUrl && ogBrowser) {
+                console.log(`    🔍  Fetching og:image from article page…`);
+                item.imageUrl = await fetchOgImage(item.url, ogBrowser);
+                console.log(`    🖼  og:image: ${item.imageUrl || '(none found)'}`);
+            }
+
+            // 5b. Upload image (best effort — article is still created if image fails)
+            let imageUuid = null;
+            if (item.imageUrl) {
+                try {
+                    imageUuid = await uploadImageToDirectus(item.imageUrl, item.title);
+                    console.log(`    ✅  Image uploaded → ${imageUuid}`);
+                } catch (err) {
+                    console.warn(`    ⚠️  Image upload failed (article will be created without image): ${err.message}`);
+                }
+            }
+
+            // 5c. Create article record
             try {
-                imageUuid = await uploadImageToDirectus(item.imageUrl, item.title);
-                console.log(`    🖼  Image uploaded → ${imageUuid}`);
+                await directus.request(createItem('articles', {
+                    title:       item.title,
+                    publication: 'Forbes',
+                    category:    'FORBES',
+                    date:        item.date,
+                    url:         item.url,
+                    excerpt:     item.excerpt,
+                    image:       imageUuid,
+                    is_headline: false,
+                    is_featured: false,
+                }));
+                console.log(`    ✅  Article created.`);
+                imported++;
             } catch (err) {
-                console.warn(`    ⚠️  Image upload failed (article will be created without image): ${err.message}`);
+                console.error(`    ❌  Failed to create article: ${err?.errors?.[0]?.message || err.message}`);
+                skipped++;
             }
         }
-
-        // 5b. Create article record
-        try {
-            await directus.request(createItem('articles', {
-                title:       item.title,
-                publication: 'Forbes',
-                category:    'FORBES',
-                date:        item.date,
-                url:         item.url,
-                excerpt:     item.excerpt,
-                image:       imageUuid,   // null if upload failed — fine
-                is_headline: false,       // Hannah decides in the CMS
-                is_featured: false,       // Hannah decides in the CMS
-            }));
-            console.log(`    ✅  Article created.`);
-            imported++;
-        } catch (err) {
-            console.error(`    ❌  Failed to create article: ${err?.errors?.[0]?.message || err.message}`);
-            skipped++;
-        }
+    } finally {
+        if (ogBrowser) await ogBrowser.close();
     }
 
     console.log(`\n✅  Sync complete — ${imported} imported, ${skipped} skipped.\n`);
@@ -329,7 +433,6 @@ async function syncWithResult() {
 
 /**
  * Convenience wrapper — runs syncWithResult() and swallows the return value.
- * Used for scheduled interval calls where we don't need the result object.
  */
 async function sync() {
     try {
@@ -346,11 +449,9 @@ async function sync() {
  *
  * Endpoints:
  *   POST /sync   — triggers an on-demand sync; responds with JSON result summary.
- *                  Called by a Directus Flow (Manual trigger → Webhook/Request op).
  *   GET  /health — liveness check; always returns 200 { ok: true }.
  *
- * Only one sync runs at a time — concurrent POST /sync requests receive a 409
- * while a sync is already in progress.
+ * Only one sync runs at a time — concurrent POST /sync requests receive a 409.
  */
 function startServer() {
     let syncInProgress = false;
@@ -358,14 +459,12 @@ function startServer() {
     const server = http.createServer(async (req, res) => {
         const { method, url } = req;
 
-        // ── GET /health ──────────────────────────────────────────────────────
         if (method === 'GET' && url === '/health') {
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ ok: true }));
             return;
         }
 
-        // ── POST /sync ───────────────────────────────────────────────────────
         if (method === 'POST' && url === '/sync') {
             if (syncInProgress) {
                 res.writeHead(409, { 'Content-Type': 'application/json' });
@@ -390,7 +489,6 @@ function startServer() {
             return;
         }
 
-        // ── 404 for everything else ──────────────────────────────────────────
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Not found' }));
     });
@@ -411,7 +509,6 @@ function startServer() {
 async function reset() {
     console.log('\n🗑   Reset mode — deleting all articles and linked images …');
 
-    // 1. Fetch all article IDs and their image UUIDs
     let articles;
     try {
         articles = await directus.request(
@@ -424,12 +521,10 @@ async function reset() {
     if (articles.length === 0) {
         console.log('   ℹ️  No articles to delete.');
     } else {
-        // 2. Delete all articles
         const articleIds = articles.map(a => a.id);
         await directus.request(deleteItems('articles', articleIds));
         console.log(`   🗑  Deleted ${articleIds.length} article(s).`);
 
-        // 3. Delete linked images (filter out nulls)
         const imageIds = articles.map(a => a.image).filter(Boolean);
         if (imageIds.length > 0) {
             await directus.request(deleteFiles(imageIds));
@@ -437,7 +532,6 @@ async function reset() {
         }
     }
 
-    // 4. Fresh sync
     console.log('\n🔄  Running fresh sync …');
     await syncWithResult();
 }
@@ -449,23 +543,19 @@ const serverMode = process.argv.includes('--server');
 const resetMode  = process.argv.includes('--reset');
 
 if (resetMode) {
-    // --reset: wipe all articles + images, then sync fresh
     reset().then(() => process.exit(0)).catch(err => {
         console.error('❌  Reset failed:', err.message);
         process.exit(1);
     });
 } else if (serverMode) {
-    // --server: scheduled polling + on-demand HTTP endpoint
     startServer();
     sync();
     setInterval(sync, SYNC_INTERVAL);
 } else if (watchMode) {
-    // --watch: scheduled polling only
     console.log(`🕐  Watch mode — syncing every ${SYNC_INTERVAL / 3600000}h`);
     sync();
     setInterval(sync, SYNC_INTERVAL);
 } else {
-    // default: run once and exit
     sync().then(() => process.exit(0)).catch(err => {
         console.error('❌  Unexpected error:', err);
         process.exit(1);

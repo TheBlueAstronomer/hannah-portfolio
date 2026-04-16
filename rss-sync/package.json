@@ -1,9 +1,10 @@
 {
   "name": "hannah-rss-sync",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "private": true,
   "dependencies": {
-    "@directus/sdk": "^21.1.0"
+    "@directus/sdk": "^21.1.0",
+    "playwright": "^1.44.0"
   }
 }

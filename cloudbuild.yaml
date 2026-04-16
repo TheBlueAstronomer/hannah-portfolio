@@ -1,8 +1,13 @@
 steps:
-  # Pull the cached image from Artifact Registry
+  # Pull cached images from Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
     args: ['-c', 'docker pull asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:latest || exit 0']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args: ['-c', 'docker pull asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/rss-sync:latest || exit 0']
+    id: 'pull-rss-sync-cache'
 
   # 1. Build the Frontend Docker image
   - name: 'gcr.io/cloud-builders/docker'
@@ -29,23 +34,48 @@ steps:
 
 
 
-  # 3. Deploy App to Compute Engine (VM)
+  # 3. Build the rss-sync Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--cache-from'
+      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/rss-sync:latest'
+      - '-t'
+      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/rss-sync:$COMMIT_SHA'
+      - '-t'
+      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/rss-sync:latest'
+      - './rss-sync'
+    id: 'build-rss-sync'
+    waitFor: ['pull-rss-sync-cache']
+
+  # 4. Push the rss-sync Docker image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/rss-sync'
+    id: 'push-rss-sync'
+    waitFor: ['build-rss-sync']
+
+  # 5. Deploy App to Compute Engine (VM)
   # Ensure the Cloud Build service account has the necessary IAM permissions and SSH keys
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        # Securely copy the Compose file, Directus directory, and Nginx config to the VM's /tmp directory
+        # Copy compose file, directus, nginx, and rss-sync dirs to the VM
         gcloud compute scp docker-compose.prod.yml portfolio-vm:/tmp/docker-compose.prod.yml --zone=asia-south1-a --quiet
         gcloud compute scp --recurse directus portfolio-vm:/tmp/ --zone=asia-south1-a --quiet
         gcloud compute scp --recurse nginx portfolio-vm:/tmp/ --zone=asia-south1-a --quiet
-        
+        gcloud compute scp --recurse rss-sync portfolio-vm:/tmp/ --zone=asia-south1-a --quiet
+
         # SSH in to move the files using sudo, pull the new images, and restart the containers
         gcloud compute ssh portfolio-vm --zone=asia-south1-a --quiet --command="sudo bash -c '\
           cp /tmp/docker-compose.prod.yml /opt/hannah-portfolio/ && \
           cp -r /tmp/directus /opt/hannah-portfolio/ && \
           cp -r /tmp/nginx /opt/hannah-portfolio/ && \
+          cp -r /tmp/rss-sync /opt/hannah-portfolio/ && \
           cd /opt/hannah-portfolio && \
           gcloud auth configure-docker asia-south1-docker.pkg.dev --quiet && \
           docker-compose -f docker-compose.prod.yml pull && \
@@ -56,10 +86,13 @@ steps:
         echo "$current_keys" | grep -v "^root:" > /tmp/ssh_keys_cleaned.txt
         gcloud compute project-info add-metadata --project=$PROJECT_ID --metadata-from-file=ssh-keys=/tmp/ssh_keys_cleaned.txt
     id: 'deploy-vm'
+    waitFor: ['push-frontend', 'push-rss-sync']
 
 images:
   - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:$COMMIT_SHA'
   - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:latest'
+  - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/rss-sync:$COMMIT_SHA'
+  - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/rss-sync:latest'
 
 options:
   logging: CLOUD_LOGGING_ONLY
