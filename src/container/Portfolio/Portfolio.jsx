@@ -183,10 +183,8 @@ function ArticleShuffler({ articles }) {
   useEffect(() => {
     const interval = setInterval(() => {
       setCards((prev) => {
-        if (prev.length !== sourceRef.current.length || prev[0] !== sourceRef.current[0]) {
-          return sourceRef.current;
-        }
-        const next = [...prev];
+        const source = sourceRef.current;
+        const next = prev.length !== source.length ? [...source] : [...prev];
         next.push(next.shift());
         return next;
       });
@@ -196,12 +194,12 @@ function ArticleShuffler({ articles }) {
 
   return (
     <div className="relative h-[360px]">
-      {cards.map((card, i) => {
+      {cards.slice(0, 3).map((card, i) => {
         const isTop = i === 0;
         const isSecond = i === 1;
-        const scale = isTop ? 1 : isSecond ? 0.94 : 0.88;
-        const translateY = isTop ? 0 : isSecond ? 18 : 34;
-        const opacity = isTop ? 1 : isSecond ? 0.75 : 0.45;
+        const scale = isTop ? 1 : isSecond ? 0.95 : 0.90;
+        const translateY = isTop ? 0 : isSecond ? 10 : 20;
+        const opacity = isTop ? 1 : isSecond ? 0.5 : 0.25;
         const zIndex = cards.length - i;
 
         const Wrapper = isTop && card.url ? 'a' : 'div';
@@ -222,9 +220,10 @@ function ArticleShuffler({ articles }) {
               zIndex,
               transition: 'all 0.72s cubic-bezier(0.34, 1.56, 0.64, 1)',
               transformOrigin: 'top center',
-              backgroundColor: card.cardColor || card.color,
+              backgroundColor: card.cardColor || card.color || 'var(--color-bg-secondary)',
               border: '1px solid rgba(26,26,26,0.12)',
               textDecoration: 'none',
+              pointerEvents: isTop ? 'auto' : 'none',
               ...(wrapperProps.style || {}),
             }}
           >

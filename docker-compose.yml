@@ -3,13 +3,15 @@ version: "3.8"
 # ─── Hannah Portfolio — Docker Compose ────────────────────────────────────────
 #
 #  Services:
-#   directus  — self-hosted CMS,  http://localhost:8055
-#   frontend  — portfolio Vite app, http://localhost:4173  (production preview)
+#   nginx     — reverse proxy, http://localhost (port 80)
+#   directus  — self-hosted CMS,  http://localhost/cms  (proxied via nginx)
+#   frontend  — portfolio Vite app, http://localhost/  (proxied via nginx)
+#   rss-sync  — polls Forbes RSS feed and imports new articles into Directus
 #
 #  First-time setup:
 #   1. Copy .env.directus.example → .env.directus and fill in the secrets.
 #   2. docker compose up directus
-#   3. Open http://localhost:8055 and log in with ADMIN_EMAIL / ADMIN_PASSWORD.
+#   3. Open http://localhost/cms/admin and log in with ADMIN_EMAIL / ADMIN_PASSWORD.
 #   4. Go to Settings → Data Model → create the "articles" collection
 #      (or use: docker compose run --rm directus node /directus/seed/seed_articles.mjs)
 #   5. Set the "articles" collection to public read:
@@ -19,13 +21,29 @@ version: "3.8"
 
 services:
 
+  # ── Nginx Reverse Proxy ──────────────────────────────────────────────────────
+  # Single public entry point — routes / → frontend, /cms/ → directus, /assets/ → directus
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: hannah_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - frontend
+      - directus
+      - rss-sync
+
   # ── Directus CMS ─────────────────────────────────────────────────────────────
   directus:
     image: directus/directus:11
     container_name: hannah_directus
     restart: unless-stopped
-    ports:
-      - "8055:8055"
+    expose:
+      - "8055"
     volumes:
       - directus_db:/directus/database       # SQLite database persistence
       - directus_uploads:/directus/uploads   # uploaded files / images
@@ -54,6 +72,9 @@ services:
       # ── Logging ───────────────────────────────────────────────────────────
       LOG_LEVEL: "info"
 
+      # ── Reverse proxy awareness ───────────────────────────────────────────
+      PUBLIC_URL: "http://localhost/cms"
+
   # ── Frontend (production preview) ────────────────────────────────────────────
   # Builds the Vite app and serves it with `vite preview` on port 4173.
   # For local dev, just run `npm run dev` on your host instead.
@@ -61,15 +82,37 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_DIRECTUS_URL: "http://localhost/cms"  # public URL routed through Nginx
     container_name: hannah_frontend
     restart: unless-stopped
-    ports:
-      - "4173:4173"
+    expose:
+      - "4173"
+    depends_on:
+      - directus
+
+  # ── RSS Sync ──────────────────────────────────────────────────────────────────
+  # Fetches Forbes RSS directly via Playwright headless Chromium (bypasses
+  # Cloudflare), imports new articles into Directus every 6 hours.
+  # Requires DIRECTUS_TOKEN to be set in .env.directus.
+  rss-sync:
+    build:
+      context: ./rss-sync
+      dockerfile: Dockerfile
+    container_name: hannah_rss_sync
+    restart: unless-stopped
+    env_file:
+      - .env.directus
     environment:
-      VITE_DIRECTUS_URL: "http://directus:8055"   # internal Docker network URL
+      DIRECTUS_URL: "http://directus:8055"   # internal Docker network URL
+      SYNC_INTERVAL_MS: "21600000"           # 6 hours; lower for testing
+      SERVER_PORT: "3000"
+    expose:
+      - "3000"                               # internal only — not published to host
     depends_on:
       - directus
 
 volumes:
   directus_db:
   directus_uploads:
+  # node_modules_rss removed — deps are now baked into the rss-sync image

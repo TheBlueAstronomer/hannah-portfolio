@@ -30,8 +30,8 @@ import {
 } from '@directus/sdk';
 
 const URL = process.env.DIRECTUS_URL || 'http://localhost:8055';
-const EMAIL = process.env.DIRECTUS_EMAIL || 'admin@hannah.com';
-const PASSWORD = process.env.DIRECTUS_PASSWORD || 'admin1234';
+const EMAIL = process.env.DIRECTUS_EMAIL || 'admin@example.com';
+const PASSWORD = process.env.DIRECTUS_PASSWORD || 'changeme123';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -172,16 +172,17 @@ async function createFields() {
 async function setPermissions() {
     console.log('\n🔓  Setting public read permissions …');
 
-    // Find the built-in $public policy
-    const policies = await client.request(readPolicies({ filter: { name: { _eq: '$public' } } }));
+    // Find the built-in public policy — Directus stores its name as a translation key
+    // ('$t:public_label'), so match on the stable icon field instead.
+    const policies = await client.request(readPolicies({ filter: { icon: { _eq: 'public' } } }));
     const publicPolicy = policies?.[0];
 
     if (!publicPolicy) {
-        console.warn('   ⚠  Could not find $public policy — set permissions manually in Directus admin.');
+        console.warn('   ⚠  Could not find public policy — set permissions manually in Directus admin.');
         return;
     }
 
-    for (const collection of ['articles', 'testimonials', 'site_settings']) {
+    for (const collection of ['articles', 'testimonials', 'site_settings', 'directus_files']) {
         await tryCreate(`public read → ${collection}`, () =>
             client.request(createPermission({
                 policy: publicPolicy.id,

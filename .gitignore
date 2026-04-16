@@ -29,6 +29,12 @@ dist-ssr
 # Directus local data volumes
 directus/database/
 directus/uploads/
+directus-cms/uploads/
+directus-cms/extensions/
+directus-cms/data.db
+
+# RSS sync isolated node_modules
+node_modules_rss/
 
 .env
 /.agents/
