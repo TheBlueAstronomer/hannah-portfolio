@@ -90,11 +90,13 @@ steps:
     waitFor: ['push-frontend', 'push-rss-sync']
 
   # 6. Apply public read permissions — runs after containers are up
-  #    Idempotent: safe on every deploy. Creates missing perms, patches existing ones.
-  #    Requires DIRECTUS_ADMIN_EMAIL + DIRECTUS_ADMIN_PASSWORD in Cloud Build substitutions
-  #    or Secret Manager (see README for setup).
+  #    Uses Cloud Build native secret injection (availableSecrets) so Cloud Build's
+  #    own service account fetches secrets — no gcloud secrets call needed at runtime.
+  #    Runs apply-permissions.mjs via docker exec inside the Directus container,
+  #    where node is available (v22), connecting to Directus on the internal network.
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
+    secretEnv: ['ADMIN_EMAIL', 'ADMIN_PASSWORD']
     args:
       - '-c'
       - |
@@ -112,13 +114,22 @@ steps:
             done
           "
 
-        # Run the idempotent permission enforcer using the admin credentials from Secret Manager
-        ADMIN_EMAIL=$$(gcloud secrets versions access latest --secret=hannah-admin-email --project=$PROJECT_ID)
-        ADMIN_PASSWORD=$$(gcloud secrets versions access latest --secret=hannah-admin-password --project=$PROJECT_ID)
+        # Copy the script into the Directus container and run it with docker exec.
+        # node is available inside the container (v22). Directus is reachable at
+        # http://localhost:8055 from within the container (internal network).
+        scp -i /root/.ssh/deploy_key -o StrictHostKeyChecking=no \
+          directus/apply-permissions.mjs deploy@34.100.194.88:/tmp/apply-permissions.mjs
 
         ssh -i /root/.ssh/deploy_key -o StrictHostKeyChecking=no \
-          deploy@34.100.194.88 \
-          "DIRECTUS_URL=http://localhost/cms DIRECTUS_EMAIL='$$ADMIN_EMAIL' DIRECTUS_PASSWORD='$$ADMIN_PASSWORD' node /opt/hannah-portfolio/directus/apply-permissions.mjs"
+          deploy@34.100.194.88 "
+            docker cp /tmp/apply-permissions.mjs hannah_directus_prod:/tmp/apply-permissions.mjs && \
+            docker exec \
+              -e DIRECTUS_URL=http://localhost:8055 \
+              -e DIRECTUS_EMAIL='$$ADMIN_EMAIL' \
+              -e DIRECTUS_PASSWORD='$$ADMIN_PASSWORD' \
+              hannah_directus_prod \
+              node /tmp/apply-permissions.mjs
+          "
     id: 'apply-permissions'
     waitFor: ['deploy-vm']
 
@@ -127,6 +138,13 @@ images:
   - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:latest'
   - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/rss-sync:$COMMIT_SHA'
   - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/rss-sync:latest'
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/hannah-admin-email/versions/latest
+      env: 'ADMIN_EMAIL'
+    - versionName: projects/$PROJECT_ID/secrets/hannah-admin-password/versions/latest
+      env: 'ADMIN_PASSWORD'
 
 options:
   logging: CLOUD_LOGGING_ONLY
