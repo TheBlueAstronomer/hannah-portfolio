@@ -81,6 +81,7 @@ steps:
             sudo cp /tmp/docker-compose.prod.yml /opt/hannah-portfolio/ && \
             sudo cp -r /tmp/directus /tmp/nginx /tmp/rss-sync /opt/hannah-portfolio/ && \
             cd /opt/hannah-portfolio && \
+            docker rm -f hannah_rss_sync_prod 2>/dev/null || true && \
             gcloud auth configure-docker asia-south1-docker.pkg.dev --quiet && \
             docker-compose -f docker-compose.prod.yml pull && \
             docker-compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
