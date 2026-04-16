@@ -58,39 +58,33 @@ steps:
     waitFor: ['build-rss-sync']
 
   # 5. Deploy App to Compute Engine (VM)
-  # Ensure the Cloud Build service account has the necessary IAM permissions and SSH keys
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        # Remove stale ephemeral keys from the Cloud Build SA's OS Login profile
-        # This prevents the 32 KiB login profile size limit from being exceeded
-        for fp in $(gcloud compute os-login ssh-keys list --format="value(key.fingerprint)"); do
-          gcloud compute os-login ssh-keys remove --key="$fp" --quiet || true
-        done
+        # Fetch the static deploy key from Secret Manager (no ephemeral key injection)
+        gcloud secrets versions access latest \
+          --secret=hannah-deploy-ssh-key \
+          --project=$PROJECT_ID > /root/.ssh/deploy_key
+        chmod 600 /root/.ssh/deploy_key
 
-        # Also clean up stale root keys from project-level metadata
-        current_keys=$(gcloud compute project-info describe --project=$PROJECT_ID --format="value(commonInstanceMetadata.items['ssh-keys'])")
-        echo "$current_keys" | grep -v "^root:" > /tmp/ssh_keys_cleaned.txt
-        gcloud compute project-info add-metadata --project=$PROJECT_ID --metadata-from-file=ssh-keys=/tmp/ssh_keys_cleaned.txt
+        # Copy files to VM as the non-root deploy user
+        scp -i /root/.ssh/deploy_key -o StrictHostKeyChecking=no \
+          docker-compose.prod.yml deploy@34.100.194.88:/tmp/
+        scp -i /root/.ssh/deploy_key -o StrictHostKeyChecking=no -r \
+          directus nginx rss-sync deploy@34.100.194.88:/tmp/
 
-        # Copy compose file, directus, nginx, and rss-sync dirs to the VM
-        gcloud compute scp docker-compose.prod.yml portfolio-vm:/tmp/docker-compose.prod.yml --zone=asia-south1-a --quiet
-        gcloud compute scp --recurse directus portfolio-vm:/tmp/ --zone=asia-south1-a --quiet
-        gcloud compute scp --recurse nginx portfolio-vm:/tmp/ --zone=asia-south1-a --quiet
-        gcloud compute scp --recurse rss-sync portfolio-vm:/tmp/ --zone=asia-south1-a --quiet
-
-        # SSH in to move the files using sudo, pull the new images, and restart the containers
-        gcloud compute ssh portfolio-vm --zone=asia-south1-a --quiet --command="sudo bash -c '\
-          cp /tmp/docker-compose.prod.yml /opt/hannah-portfolio/ && \
-          cp -r /tmp/directus /opt/hannah-portfolio/ && \
-          cp -r /tmp/nginx /opt/hannah-portfolio/ && \
-          cp -r /tmp/rss-sync /opt/hannah-portfolio/ && \
-          cd /opt/hannah-portfolio && \
-          gcloud auth configure-docker asia-south1-docker.pkg.dev --quiet && \
-          docker-compose -f docker-compose.prod.yml pull && \
-          docker-compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans'"
+        # SSH in, move files, pull new images and restart containers
+        ssh -i /root/.ssh/deploy_key -o StrictHostKeyChecking=no \
+          deploy@34.100.194.88 "
+            sudo cp /tmp/docker-compose.prod.yml /opt/hannah-portfolio/ && \
+            sudo cp -r /tmp/directus /tmp/nginx /tmp/rss-sync /opt/hannah-portfolio/ && \
+            cd /opt/hannah-portfolio && \
+            gcloud auth configure-docker asia-south1-docker.pkg.dev --quiet && \
+            docker-compose -f docker-compose.prod.yml pull && \
+            docker-compose -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
+          "
     id: 'deploy-vm'
     waitFor: ['push-frontend', 'push-rss-sync']
 
