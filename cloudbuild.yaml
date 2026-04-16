@@ -64,8 +64,13 @@ steps:
     args:
       - '-c'
       - |
-        # Remove stale ephemeral root keys injected by previous Cloud Build runs BEFORE attempting scp/ssh
-        # This prevents the login profile from exceeding the 32 KiB limit
+        # Remove stale ephemeral keys from the Cloud Build SA's OS Login profile
+        # This prevents the 32 KiB login profile size limit from being exceeded
+        for fp in $(gcloud compute os-login ssh-keys list --format="value(key.fingerprint)"); do
+          gcloud compute os-login ssh-keys remove --key="$fp" --quiet || true
+        done
+
+        # Also clean up stale root keys from project-level metadata
         current_keys=$(gcloud compute project-info describe --project=$PROJECT_ID --format="value(commonInstanceMetadata.items['ssh-keys'])")
         echo "$current_keys" | grep -v "^root:" > /tmp/ssh_keys_cleaned.txt
         gcloud compute project-info add-metadata --project=$PROJECT_ID --metadata-from-file=ssh-keys=/tmp/ssh_keys_cleaned.txt
