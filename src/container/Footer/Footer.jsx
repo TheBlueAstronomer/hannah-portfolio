@@ -142,7 +142,7 @@ export default function Footer() {
     <footer
       id="contact"
       className="relative"
-      style={{ backgroundColor: '#111009' }}
+      style={{ backgroundColor: 'var(--color-charcoal)' }}
       aria-label="Footer and Contact"
     >
       {/* Dotted grid overlay */}

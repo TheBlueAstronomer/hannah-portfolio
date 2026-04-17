@@ -358,7 +358,7 @@ export default function BookPage() {
                                     {error && (
                                         <p
                                             className="font-sans text-xs"
-                                            style={{ color: '#c0392b' }}
+                                            style={{ color: 'var(--color-coral)' }}
                                             role="alert"
                                         >
                                             {error}
