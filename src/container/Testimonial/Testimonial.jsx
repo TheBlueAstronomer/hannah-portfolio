@@ -31,7 +31,7 @@ const FALLBACK_REVIEWS = [
     job_title: 'Digital Director',
     publication: 'ELLE Magazine',
     rating: 5,
-    bg_color: '#111009',
+    bg_color: 'var(--color-charcoal)',
     accent_color: 'var(--color-gold)',
     category: 'Client Testimonial',
     is_dark: true,

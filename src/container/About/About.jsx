@@ -129,7 +129,7 @@ export default function Philosophy() {
       id="about"
       ref={sectionRef}
       className="relative overflow-hidden py-28 md:py-40 film-grain"
-      style={{ backgroundColor: '#111009' }}
+      style={{ backgroundColor: 'var(--color-charcoal)' }}
       aria-label="Philosophy — The Journalist's Manifesto"
     >
       {/* Film grain overlay */}
