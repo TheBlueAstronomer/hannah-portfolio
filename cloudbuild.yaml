@@ -89,11 +89,9 @@ steps:
     id: 'deploy-vm'
     waitFor: ['push-frontend', 'push-rss-sync']
 
-  # 6. Apply public read permissions — runs after containers are up
-  #    Uses Cloud Build native secret injection (availableSecrets) so Cloud Build's
-  #    own service account fetches secrets — no gcloud secrets call needed at runtime.
-  #    Runs apply-permissions.mjs via docker exec inside the Directus container,
-  #    where node is available (v22), connecting to Directus on the internal network.
+  # 6. Bootstrap Directus schema — creates any missing collections, fields, relations,
+  #    and public read permissions via the Directus REST API (curl from the VM).
+  #    Fully idempotent: existing resources return 200/4xx which are silently ignored.
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
     secretEnv: ['ADMIN_EMAIL', 'ADMIN_PASSWORD']
@@ -105,18 +103,31 @@ steps:
           --project=$PROJECT_ID > /root/.ssh/deploy_key
         chmod 600 /root/.ssh/deploy_key
 
-        # Wait up to 30s for Directus to be ready after container restart
+        scp -i /root/.ssh/deploy_key -o StrictHostKeyChecking=no \
+          directus/bootstrap-schema.sh deploy@34.100.194.88:/tmp/bootstrap-schema.sh
+
         ssh -i /root/.ssh/deploy_key -o StrictHostKeyChecking=no \
           deploy@34.100.194.88 "
-            for i in \$(seq 1 6); do
-              curl -sf http://localhost/cms/server/health > /dev/null && break
-              echo \"Waiting for Directus… (\$i/6)\" && sleep 5
-            done
+            chmod +x /tmp/bootstrap-schema.sh && \
+            DIRECTUS_EMAIL='$$ADMIN_EMAIL' DIRECTUS_PASSWORD='$$ADMIN_PASSWORD' \
+            bash /tmp/bootstrap-schema.sh http://localhost/cms && \
+            rm /tmp/bootstrap-schema.sh
           "
+    id: 'bootstrap-schema'
+    waitFor: ['deploy-vm']
 
-        # Copy the script into the Directus container and run it with docker exec.
-        # node is available inside the container (v22). Directus is reachable at
-        # http://localhost:8055 from within the container (internal network).
+  # 7. Apply public read permissions (double-check after bootstrap).
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    secretEnv: ['ADMIN_EMAIL', 'ADMIN_PASSWORD']
+    args:
+      - '-c'
+      - |
+        gcloud secrets versions access latest \
+          --secret=hannah-deploy-ssh-key \
+          --project=$PROJECT_ID > /root/.ssh/deploy_key
+        chmod 600 /root/.ssh/deploy_key
+
         scp -i /root/.ssh/deploy_key -o StrictHostKeyChecking=no \
           directus/apply-permissions.mjs deploy@34.100.194.88:/tmp/apply-permissions.mjs
 
@@ -131,7 +142,7 @@ steps:
               node /tmp/apply-permissions.mjs
           "
     id: 'apply-permissions'
-    waitFor: ['deploy-vm']
+    waitFor: ['bootstrap-schema']
 
 images:
   - 'asia-south1-docker.pkg.dev/$PROJECT_ID/portfolio/frontend:$COMMIT_SHA'
