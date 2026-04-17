@@ -6,9 +6,9 @@
  *
  * This script:
  *   1. Authenticates with admin email + password
- *   2. Creates all 3 collections (articles, testimonials, site_settings)
+ *   2. Creates all 4 collections (articles, testimonials, site_settings, instagram_posts)
  *   3. Adds all required fields to each collection
- *   4. Grants the Public policy read access on all 3 collections
+ *   4. Grants the Public policy read access on all 4 collections
  *   5. Seeds all placeholder content
  *
  * Usage:
@@ -23,7 +23,7 @@
 
 import {
     createDirectus, rest, authentication,
-    createCollection, createField,
+    createCollection, createField, createRelation,
     createPermission, readPolicies,
     createItems, updateSingleton,
     withToken,
@@ -88,6 +88,15 @@ async function createCollections() {
             fields: [],
         }))
     );
+
+    await tryCreate('instagram_posts', () =>
+        client.request(createCollection({
+            collection: 'instagram_posts',
+            meta: { icon: 'photo_camera', singleton: false },
+            schema: {},
+            fields: [],
+        }))
+    );
 }
 
 // ─── 2. FIELDS ────────────────────────────────────────────────────────────────
@@ -117,13 +126,20 @@ async function createFields() {
         field('sort', 'integer', 'input-default-value', { hidden: false }),
         field('is_featured', 'boolean', 'boolean', { note: 'Show in Card Shuffler' }),
         field('is_headline', 'boolean', 'boolean', { note: 'Show in Typewriter Feed' }),
-        field('image', 'uuid', 'file-image'),
+        field('image', 'uuid', 'file-image', { special: ['file'], note: 'Article cover image', schema: { is_nullable: true, foreign_key_table: 'directus_files', foreign_key_column: 'id' } }),
     ];
     for (const f of articleFields) {
         await tryCreate(`articles.${f.field}`, () =>
             client.request(createField('articles', f))
         );
     }
+    await tryCreate('articles.image → directus_files (relation)', () =>
+        client.request(createRelation({
+            collection: 'articles',
+            field: 'image',
+            related_collection: 'directus_files',
+        }))
+    );
 
     // ── testimonials ──────────────────────────────────────────────────────────
     const testimonialFields = [
@@ -143,6 +159,26 @@ async function createFields() {
             client.request(createField('testimonials', f))
         );
     }
+
+    // ── instagram_posts ────────────────────────────────────────────────────────
+    const instagramFields = [
+        field('caption', 'text', 'input-multiline', { required: true }),
+        field('preview', 'uuid', 'file-image', { special: ['file'], note: 'Square preview image', schema: { is_nullable: true, foreign_key_table: 'directus_files', foreign_key_column: 'id' } }),
+        field('post_url', 'string', 'input', { note: 'Link to the Instagram post' }),
+        field('sort', 'integer', 'input-default-value', { hidden: false }),
+    ];
+    for (const f of instagramFields) {
+        await tryCreate(`instagram_posts.${f.field}`, () =>
+            client.request(createField('instagram_posts', f))
+        );
+    }
+    await tryCreate('instagram_posts.preview → directus_files (relation)', () =>
+        client.request(createRelation({
+            collection: 'instagram_posts',
+            field: 'preview',
+            related_collection: 'directus_files',
+        }))
+    );
 
     // ── site_settings ─────────────────────────────────────────────────────────
     const settingsFields = [
@@ -182,7 +218,7 @@ async function setPermissions() {
         return;
     }
 
-    for (const collection of ['articles', 'testimonials', 'site_settings', 'directus_files']) {
+    for (const collection of ['articles', 'testimonials', 'site_settings', 'instagram_posts', 'directus_files']) {
         await tryCreate(`public read → ${collection}`, () =>
             client.request(createPermission({
                 policy: publicPolicy.id,
@@ -224,6 +260,28 @@ async function seedTestimonials() {
     await tryCreate('testimonials batch', () => client.request(createItems('testimonials', testimonials)));
 }
 
+async function seedInstagramPosts() {
+    console.log('\n🌱  Seeding instagram_posts …');
+    const posts = [
+        {
+            caption: 'Caught up with Zendaya at the #Dune2 premiere. One of the most graceful interviews of my career. 🎬 #cinema #redcarpet',
+            post_url: null,
+            sort: 1,
+        },
+        {
+            caption: 'Backstage with The 1975 after their London show. Their energy is genuinely unmatched. 🎶 #music #livemusic',
+            post_url: null,
+            sort: 2,
+        },
+        {
+            caption: 'My review of the latest A24 film is live — link in bio. Must watch. #filmcritic #A24',
+            post_url: null,
+            sort: 3,
+        },
+    ];
+    await tryCreate('instagram_posts batch', () => client.request(createItems('instagram_posts', posts)));
+}
+
 async function seedSiteSettings() {
     console.log('\n🌱  Seeding site_settings …');
     await tryCreate('site_settings', () =>
@@ -255,6 +313,7 @@ async function main() {
         await seedArticles();
         await seedTestimonials();
         await seedSiteSettings();
+        await seedInstagramPosts();
         console.log(`\n✅  Setup complete! Open ${URL} to manage content.\n`);
     } catch (err) {
         console.error('\n❌  Fatal error:', err?.errors || err.message);
