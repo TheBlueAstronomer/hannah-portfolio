@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { gsap } from 'gsap';
-import { ExternalLink, ArrowRight } from 'lucide-react';
+import { ExternalLink, ArrowRight, Instagram } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { readItems } from '@directus/sdk';
 import { directus, DIRECTUS_URL } from '../../directus';
@@ -20,6 +20,12 @@ const HEADLINES_QUERY = {
   fields: ['id', 'title', 'url'],
 };
 
+const INSTAGRAM_QUERY = {
+  sort: ['sort'],
+  limit: 3,
+  fields: ['id', 'preview', 'caption', 'post_url'],
+};
+
 // Map Directus snake_case fields → component camelCase props
 function mapFeatured(item) {
   return {
@@ -32,6 +38,15 @@ function mapFeatured(item) {
 
 function mapHeadline(item) {
   return { id: item.id, title: item.title, url: item.url };
+}
+
+function mapInstaPost(item) {
+  return {
+    id: item.id,
+    preview: item.preview ? `${DIRECTUS_URL}/assets/${item.preview}` : null,
+    caption: item.caption || '',
+    postUrl: item.post_url || null,
+  };
 }
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
@@ -123,8 +138,26 @@ const PLACEHOLDER_HEADLINES = [
   'Bad Bunny\'s Super Bowl halftime show: every cultural reference, broken down — and what it means for Latin music in 2026.',
 ];
 
-const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const SCHEDULED_DAYS = [1, 2, 3, 5]; // Mon, Tue, Wed, Fri — pre-published
+const PLACEHOLDER_INSTAGRAM_POSTS = [
+  {
+    id: 3,
+    preview: `${DIRECTUS_URL}/assets/d320bb55-7387-4f14-a370-0e39c69340f6`,
+    caption: "What do Iran, Venezuela, Indian tariffs, Trump and the Ambanis all have in common? Always trace the oil, kids.",
+    postUrl: 'https://www.instagram.com/reel/DVyQjq-zYnC/?utm_source=ig_web_copy_link&igsh=NTc4MTIwNjQ2YQ==',
+  },
+  {
+    id: 2,
+    preview: `${DIRECTUS_URL}/assets/afe32515-31b3-48a4-a113-9d61a2c4dd4f`,
+    caption: "literally what is my life\n\n#kpopinterview #entertainmentjournalist #jaypark #grammy",
+    postUrl: 'https://www.instagram.com/han_na_na_nah/p/DEctdXIIuBC/',
+  },
+  {
+    id: 1,
+    preview: `${DIRECTUS_URL}/assets/071ca833-7579-4dbf-abb0-4ae185dd1861`,
+    caption: "Didn't throw away my shot. I am very very chalant about this LIKE WHAT a way to end the year",
+    postUrl: 'https://www.instagram.com/p/DENxIsUoxAm/?utm_source=ig_web_copy_link&igsh=NTc4MTIwNjQ2YQ==',
+  },
+];
 
 // ─── CARD 1: ARTICLE SHUFFLER ────────────────────────────────────────────────
 
@@ -387,196 +420,183 @@ function TelemetryTypewriter({ headlines }) {
   );
 }
 
-// ─── CARD 3: EDITORIAL SCHEDULER ─────────────────────────────────────────────
+// ─── CARD 3: ON THE GRAM ─────────────────────────────────────────────────────
 
-function EditorialScheduler() {
-  const [activeDay, setActiveDay] = useState(null);
-  const [buttonActive, setButtonActive] = useState(false);
-  const cursorRef = useRef(null);
-  const gridRef = useRef(null);
-  const btnRef = useRef(null);
-  const tlRef = useRef(null);
+// Cards are centred via left:50% + marginLeft:-95px on each card wrapper.
+// translateX offsets then fan cards left/right from that centre point.
+const FAN_TRANSFORMS = [
+  { rotate: '-10deg', translateX: '-120px', translateY: '50px', zIndex: 1 },
+  { rotate:   '5deg', translateX:   '90px', translateY:  '40px', zIndex: 2 },
+  { rotate:  '-2deg', translateX:  '-10px', translateY:  '20px', zIndex: 3 },
+];
 
-  const runAnimation = useCallback(() => {
-    const cursor = cursorRef.current;
-    const grid = gridRef.current;
-    const btn = btnRef.current;
-    if (!cursor || !grid || !btn) return;
+InstaCard.propTypes = {
+  post: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    preview: PropTypes.string,
+    caption: PropTypes.string,
+    postUrl: PropTypes.string,
+  }).isRequired,
+  fanTransform: PropTypes.object.isRequired,
+  isHovered: PropTypes.bool.isRequired,
+  onHover: PropTypes.func.isRequired,
+  onLeave: PropTypes.func.isRequired,
+  cardWidth: PropTypes.number.isRequired,
+};
 
-    // Pick day index 4 (Thursday) to "click"
-    const targetDayIndex = 4;
-    const dayCells = grid.querySelectorAll('[data-day]');
-    const targetCell = dayCells[targetDayIndex];
+function InstaCard({ post, fanTransform, isHovered, onHover, onLeave, cardWidth }) {
+  const { rotate, translateX, translateY, zIndex } = fanTransform;
 
-    if (!targetCell) return;
+  const baseTransform = `rotate(${rotate}) translateX(${translateX}) translateY(${translateY})`;
+  const hoverTransform = `rotate(${rotate}) translateX(${translateX}) translateY(calc(${translateY} - 20px)) scale(1.06)`;
 
-    const gridRect = grid.getBoundingClientRect();
-    const cellRect = targetCell.getBoundingClientRect();
-    const btnRect = btn.getBoundingClientRect();
-
-    const cellX = cellRect.left - gridRect.left + cellRect.width / 2;
-    const cellY = cellRect.top - gridRect.top + cellRect.height / 2;
-    const btnX = btnRect.left - gridRect.left + btnRect.width / 2;
-    const btnY = btnRect.top - gridRect.top + btnRect.height / 2;
-
-    if (tlRef.current) tlRef.current.kill();
-    setActiveDay(null);
-    setButtonActive(false);
-
-    const tl = gsap.timeline({ repeat: -1, repeatDelay: 1.5 });
-
-    // Cursor enters from outside
-    tl.set(cursor, { x: -60, y: cellY - 10, opacity: 0 })
-      .to(cursor, { x: cellX - 12, y: cellY - 10, opacity: 1, duration: 0.7, ease: 'power2.out' })
-      // Cursor "clicks" the day
-      .to(cursor, { scale: 0.8, duration: 0.1, ease: 'power2.in' })
-      .call(() => setActiveDay(targetDayIndex))
-      .to(cursor, { scale: 1, duration: 0.15, ease: 'power2.out' })
-      // Move to Read Now button
-      .to(cursor, { x: btnX - 12, y: btnY - 10, duration: 0.65, ease: 'power2.inOut', delay: 0.4 })
-      .to(cursor, { scale: 0.8, duration: 0.1, ease: 'power2.in' })
-      .call(() => setButtonActive(true))
-      .to(cursor, { scale: 1, duration: 0.15, ease: 'power2.out' })
-      // Fade out
-      .to(cursor, { opacity: 0, duration: 0.4, delay: 0.8 })
-      .call(() => {
-        setActiveDay(null);
-        setButtonActive(false);
-      });
-
-    tlRef.current = tl;
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(runAnimation, 800);
-    return () => {
-      clearTimeout(timer);
-      if (tlRef.current) tlRef.current.kill();
-    };
-  }, [runAnimation]);
+  const Wrapper = post.postUrl ? 'a' : 'div';
+  const wrapperProps = post.postUrl
+    ? { href: post.postUrl, target: '_blank', rel: 'noopener noreferrer' }
+    : {};
 
   return (
-    <div className="flex flex-col h-full gap-4" ref={gridRef}>
-      <div className="flex items-center justify-between">
-        <span
-          className="font-ui uppercase"
-          style={{ fontSize: '0.6rem', letterSpacing: '0.28em', fontWeight: 600, color: 'var(--color-charcoal)', opacity: 0.55 }}
-        >
-          Publishing Schedule — Forbes · Deadline · BI
-        </span>
-        <span
+    <Wrapper
+      {...wrapperProps}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+      style={{
+        position: 'absolute',
+        width: `${cardWidth}px`,
+        left: '50%',
+        marginLeft: `${-cardWidth / 2}px`,
+        zIndex: isHovered ? 50 : zIndex,
+        transform: isHovered ? hoverTransform : baseTransform,
+        transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease',
+        cursor: 'pointer',
+        textDecoration: 'none',
+      }}
+    >
+      {/* Gold shadow decoration behind the card */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: -1,
+          backgroundColor: 'var(--color-gold)',
+          opacity: isHovered ? 0 : 0.12,
+          borderRadius: '2px',
+          transform: 'rotate(2deg) translate(3px, 4px)',
+          transition: 'opacity 0.35s ease',
+        }}
+      />
+      {/* Card face */}
+      <div
+        style={{
+          backgroundColor: '#FFFFFF',
+          border: '1px solid rgba(26,26,26,0.08)',
+          borderRadius: '2px',
+          padding: '8px 8px 28px 8px',
+          boxShadow: isHovered
+            ? '12px 20px 48px rgba(26,26,26,0.24)'
+            : '8px 12px 32px rgba(26,26,26,0.16), -2px -2px 10px rgba(255,255,255,0.7)',
+          transition: 'box-shadow 0.35s ease',
+        }}
+      >
+        {/* Square image */}
+        <div style={{ aspectRatio: '1 / 1', overflow: 'hidden', marginBottom: '4px' }}>
+          {post.preview ? (
+            <img
+              src={post.preview}
+              alt=""
+              draggable="false"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+          ) : (
+            <div style={{ width: '100%', height: '100%', backgroundColor: 'rgba(26,26,26,0.06)' }} />
+          )}
+        </div>
+        {/* Caption */}
+        <p
           className="font-sans"
-          style={{ fontSize: '0.65rem', color: 'var(--color-text-secondary)', opacity: 0.6 }}
+          style={{
+            fontSize: '0.6rem',
+            color: 'var(--color-charcoal)',
+            opacity: 0.8,
+            lineHeight: 1.45,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            margin: 0,
+          }}
         >
-          Mar 2026
-        </span>
+          {post.caption}
+        </p>
       </div>
+    </Wrapper>
+  );
+}
 
-      {/* Week Grid */}
-      <div className="grid grid-cols-7 gap-1.5 relative">
-        {DAYS.map((day, i) => {
-          const isScheduled = SCHEDULED_DAYS.includes(i);
-          const isActive = activeDay === i;
+OnTheGram.propTypes = {
+  posts: PropTypes.array,
+};
 
-          return (
-            <div
-              key={`${day}-${i}`}
-              data-day={i}
-              className="flex flex-col items-center gap-1.5 p-2 cursor-default transition-all duration-300"
-              style={{
-                backgroundColor: isActive
-                  ? 'var(--color-gold)'
-                  : isScheduled
-                    ? 'rgba(223,189,56,0.14)'
-                    : 'rgba(26,26,26,0.04)',
-                transform: isActive ? 'scale(1.06)' : 'scale(1)',
-                boxShadow: isActive ? '0 4px 12px rgba(223,189,56,0.3)' : 'none',
-                borderRadius: '2px',
-              }}
-            >
-              <span
-                className="font-ui uppercase"
-                style={{ fontSize: '0.55rem', letterSpacing: '0.1em', fontWeight: 600, color: isActive ? 'var(--color-charcoal)' : 'var(--color-text-secondary)', opacity: isActive ? 1 : 0.7 }}
-              >
-                {day}
-              </span>
-              <div
-                className="w-5 h-5 flex items-center justify-center transition-colors duration-300"
-                style={{
-                  backgroundColor: isActive
-                    ? 'rgba(26,26,26,0.15)'
-                    : isScheduled
-                      ? 'rgba(223,189,56,0.35)'
-                      : 'transparent',
-                  borderRadius: '50%',
-                }}
-              >
-                {isScheduled && !isActive && (
-                  <div
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{ backgroundColor: 'var(--color-gold)' }}
-                  />
-                )}
-                {isActive && (
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-                    <path d="M2 5.5L4 7.5L8 3" stroke="#1A1A1A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-              </div>
-            </div>
-          );
-        })}
+function OnTheGram({ posts }) {
+  const source = (posts && posts.length > 0) ? posts : PLACEHOLDER_INSTAGRAM_POSTS;
+  const cards = source.slice(0, 3);
+  const [hoveredId, setHoveredId] = useState(null);
+  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia('(min-width: 1024px)').matches);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const handler = (e) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  // On desktop the fan bleeds outside the card boundary; on mobile it stays contained.
+  const fanStyle = isDesktop
+    ? { position: 'absolute', top: '80px', bottom: '-40px', left: '-40px', right: '-40px', pointerEvents: 'none' }
+    : { position: 'absolute', top: '80px', bottom: '0px',   left:   '0px', right:   '0px', pointerEvents: 'none' };
+
+  return (
+    // paddingBottom reserves height for the fan on mobile (overflow:hidden, so fan must push height)
+    <div className="flex flex-col h-full" style={{ paddingBottom: isDesktop ? '0px' : '310px' }}>
+      {/* Header row */}
+      <div className="flex items-start justify-between mb-1">
+        <div>
+          <span
+            className="font-ui uppercase block"
+            style={{ fontSize: '0.6rem', letterSpacing: '0.28em', fontWeight: 600, color: 'var(--color-charcoal)', opacity: 0.55 }}
+          >
+            What&rsquo;s
+          </span>
+          <span
+            className="font-serif italic block"
+            style={{ fontSize: 'clamp(1.25rem, 2vw, 1.6rem)', color: 'var(--color-charcoal)', lineHeight: 1.2, marginTop: '2px' }}
+          >
+            On the Gram
+          </span>
+        </div>
+        <Instagram size={14} style={{ color: 'var(--color-charcoal)', opacity: 0.4, flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
       </div>
 
       {/* Divider */}
-      <div className="h-px w-full" style={{ backgroundColor: 'rgba(26,26,26,0.1)' }} />
+      <div className="h-px w-full" style={{ backgroundColor: 'rgba(26,26,26,0.1)', marginBottom: '8px' }} />
 
-      {/* Read Now Button */}
-      <div ref={btnRef} className="flex items-center gap-3">
-        <button
-          className="flex items-center gap-2 font-ui uppercase tracking-[0.08em] px-5 py-2.5 border transition-all duration-300"
-          style={{
-            fontSize: '0.7rem',
-            fontWeight: 600,
-            borderColor: buttonActive ? 'var(--color-gold)' : 'var(--color-charcoal)',
-            backgroundColor: buttonActive ? 'var(--color-gold)' : 'transparent',
-            color: 'var(--color-charcoal)',
-            transform: buttonActive ? 'scale(1.04)' : 'scale(1)',
-            borderRadius: '2px',
-          }}
-          aria-label="Read latest column"
-        >
-          Read now
-          <ArrowRight size={11} />
-        </button>
-        <span
-          className="font-sans"
-          style={{ fontSize: '0.65rem', color: 'var(--color-text-secondary)', opacity: 0.6 }}
-        >
-          200+ articles across Forbes, Deadline & more
-        </span>
+      {/* Fan container */}
+      <div style={fanStyle}>
+        <div style={{ position: 'relative', width: '100%', height: '100%', pointerEvents: 'auto' }}>
+          {cards.map((post, i) => (
+            <InstaCard
+              key={post.id}
+              post={post}
+              fanTransform={FAN_TRANSFORMS[i]}
+              isHovered={hoveredId === post.id}
+              onHover={() => setHoveredId(post.id)}
+              onLeave={() => setHoveredId(null)}
+              cardWidth={isDesktop ? 220 : 170}
+            />
+          ))}
+        </div>
       </div>
-
-      {/* SVG Cursor — absolutely positioned within the grid container */}
-      <svg
-        ref={cursorRef}
-        className="absolute pointer-events-none"
-        style={{ top: 0, left: 0, zIndex: 20, opacity: 0 }}
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <path
-          d="M5 3L19 12L12 13.5L9 20L5 3Z"
-          fill="#1A1A1A"
-          stroke="#DFBD38"
-          strokeWidth="1"
-          strokeLinejoin="round"
-        />
-      </svg>
     </div>
   );
 }
@@ -591,19 +611,22 @@ export default function LatestWork() {
   // ── Directus data state ────────────────────────────────────────────────────
   const [featuredArticles, setFeaturedArticles] = useState([]);
   const [headlineArticles, setHeadlineArticles] = useState([]);
+  const [instagramPosts, setInstagramPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     async function fetchArticles() {
       try {
-        const [featured, headlines] = await Promise.all([
+        const [featured, headlines, instagramRaw] = await Promise.all([
           directus.request(readItems('articles', FEATURED_QUERY)),
           directus.request(readItems('articles', HEADLINES_QUERY)),
+          directus.request(readItems('instagram_posts', INSTAGRAM_QUERY)).catch(() => []),
         ]);
         if (!cancelled) {
           setFeaturedArticles((featured || []).map(mapFeatured));
           setHeadlineArticles((headlines || []).map(mapHeadline));
+          setInstagramPosts((instagramRaw || []).map(mapInstaPost));
         }
       } catch (err) {
         console.error('[Portfolio] Directus fetch failed, using placeholders:', err);
@@ -739,16 +762,19 @@ export default function LatestWork() {
             <TelemetryTypewriter headlines={headlineArticles.length > 0 ? headlineArticles : undefined} />
           </div>
 
-          {/* Card 3 — Editorial Scheduler (relative for cursor positioning) */}
+          {/* Card 3 — On the Gram */}
+          {/* overflow:hidden on mobile to prevent fan bleeding into About section; visible at lg for bento bleed effect */}
           <div
             ref={(el) => (cardsRef.current[2] = el)}
-            className="p-6 flex flex-col relative overflow-hidden"
+            className="p-6 flex flex-col relative overflow-hidden lg:overflow-visible"
             style={{
               border: '1px solid rgba(26,26,26,0.12)',
               backgroundColor: 'var(--color-bg-secondary)',
+              zIndex: 10,
+              paddingBottom: 0,
             }}
           >
-            <EditorialScheduler />
+            <OnTheGram posts={instagramPosts} />
           </div>
         </div>
       </div>
