@@ -108,9 +108,9 @@ steps:
 
         ssh -i /root/.ssh/deploy_key -o StrictHostKeyChecking=no \
           deploy@34.100.194.88 "
-            chmod +x /tmp/bootstrap-schema.sh && \
+            chmod +x /tmp/bootstrap-schema.sh
             DIRECTUS_EMAIL='$$ADMIN_EMAIL' DIRECTUS_PASSWORD='$$ADMIN_PASSWORD' \
-            bash /tmp/bootstrap-schema.sh http://localhost/cms && \
+              bash /tmp/bootstrap-schema.sh http://localhost/cms
             rm /tmp/bootstrap-schema.sh
           "
     id: 'bootstrap-schema'
