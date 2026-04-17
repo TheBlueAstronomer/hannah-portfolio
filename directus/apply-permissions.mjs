@@ -23,6 +23,11 @@ const PASSWORD = process.env.DIRECTUS_PASSWORD || 'changeme123';
 
 const COLLECTIONS = ['articles', 'testimonials', 'site_settings', 'directus_files'];
 
+// Fields that must exist in the articles collection
+const REQUIRED_ARTICLE_FIELDS = [
+    { field: 'excerpt', type: 'text', meta: { interface: 'input-multiline', note: 'Article teaser shown in the archive grid' }, schema: { is_nullable: true } },
+];
+
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
 async function login() {
@@ -46,7 +51,31 @@ async function main() {
     const h = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
     console.log('✅  Authenticated.\n');
 
-    // 1. Find the public policy — match by icon='public' (stable across Directus versions)
+    // 1. Ensure required fields exist in the articles collection
+    console.log('🗂   Ensuring required article fields exist …');
+    const existingFieldsRes = await fetch(`${BASE}/fields/articles`, { headers: h });
+    const existingFieldsBody = await existingFieldsRes.json();
+    const existingFieldNames = new Set((existingFieldsBody.data || []).map(f => f.field));
+
+    for (const fieldDef of REQUIRED_ARTICLE_FIELDS) {
+        if (existingFieldNames.has(fieldDef.field)) {
+            console.log(`   ⏭  articles.${fieldDef.field} — already exists, skipping.`);
+        } else {
+            const fr = await fetch(`${BASE}/fields/articles`, {
+                method: 'POST', headers: h,
+                body: JSON.stringify(fieldDef),
+            });
+            const fb = await fr.json();
+            if (fr.ok) {
+                console.log(`   ✅  CREATED  articles.${fieldDef.field}`);
+            } else {
+                console.error(`   ❌  Failed to create articles.${fieldDef.field}:`, JSON.stringify(fb));
+            }
+        }
+    }
+    console.log();
+
+    // 2. Find the public policy — match by icon='public' (stable across Directus versions)
     const polRes = await fetch(`${BASE}/policies?filter[icon][_eq]=public&limit=5`, { headers: h });
     const polBody = await polRes.json();
     const publicPolicy = polBody.data?.[0];
@@ -56,7 +85,7 @@ async function main() {
     }
     console.log(`📋  Public policy found: id=${publicPolicy.id}  name="${publicPolicy.name}"\n`);
 
-    // 2. Fetch all existing permissions on the public policy
+    // 3. Fetch all existing permissions on the public policy
     const permRes = await fetch(
         `${BASE}/permissions?filter[policy][_eq]=${publicPolicy.id}&limit=100`,
         { headers: h }
@@ -65,7 +94,7 @@ async function main() {
     const existing = permBody.data || [];
     console.log(`🔍  Found ${existing.length} existing permission(s) on Public policy.\n`);
 
-    // 3. For each required collection: create or patch to fields=['*']
+    // 4. For each required collection: create or patch to fields=['*']
     let ok = true;
     for (const collection of COLLECTIONS) {
         const perm = existing.find(p => p.collection === collection && p.action === 'read');
@@ -106,7 +135,20 @@ async function main() {
         }
     }
 
-    // 4. Verify — unauthenticated GET on each collection
+    // 5. Flush Directus server cache so updated permissions take effect immediately
+    console.log('\n🧹  Flushing Directus cache …');
+    const flushRes = await fetch(`${BASE}/utils/cache/clear`, {
+        method: 'POST',
+        headers: h,
+    });
+    if (flushRes.ok || flushRes.status === 204) {
+        console.log('✅  Cache flushed.\n');
+    } else {
+        const flushBody = await flushRes.text();
+        console.warn(`⚠️   Cache flush returned HTTP ${flushRes.status}: ${flushBody}`);
+    }
+
+    // 6. Verify — unauthenticated GET on each collection
     console.log('\n🔍  Verifying public read access (unauthenticated) …');
     let allGood = true;
     for (const collection of COLLECTIONS) {
